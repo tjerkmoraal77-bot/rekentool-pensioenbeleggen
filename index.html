@@ -1,0 +1,1252 @@
+﻿<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rekentool Pensioenbeleggen vs. Beleggen in box 3 – Studio Rendement</title>
+
+  <!-- Google Fonts: Lato -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- html2pdf.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    /* ─── HUISSTIJL KLEUREN – Studio Rendement ─────────────────────── */
+    :root {
+      --kleur-goud:         #C5A643;
+      --kleur-goud-donker:  #A08830;
+      --kleur-goud-licht:   #F2E9C8;
+      --kleur-groen:        #09302A;
+      --kleur-groen-donker: #0C1915;
+      --kleur-groen-licht:  #D2DFD8;
+
+      --achtergrond:        #F9F7F4;
+      --wit:                #FFFFFF;
+      --tekst-donker:       #1A1A1A;
+      --tekst-medium:       #4A4A4A;
+      --tekst-licht:        #7A7570;
+      --rand:               #E8E2D9;
+      --rand-focus:         var(--kleur-goud);
+      --schaduw:            0 2px 12px rgba(0,0,0,0.08);
+      --schaduw-hover:      0 4px 20px rgba(0,0,0,0.13);
+
+      --straal:             8px;
+      --straal-groot:       14px;
+    }
+
+    /* ─── RESET & BASE ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Lato', Georgia, sans-serif;
+      background: var(--achtergrond);
+      color: var(--tekst-donker);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    h1, h2, h3 {
+      font-family: Georgia, 'Athelas', serif;
+      font-weight: normal;
+      line-height: 1.3;
+    }
+
+    /* ─── HEADER ───────────────────────────────────────────────────── */
+    .site-header {
+      background: var(--kleur-groen-donker);
+      border-bottom: 3px solid var(--kleur-goud);
+      padding: 18px 40px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.30);
+    }
+
+    .site-header img.logo {
+      height: 48px;
+      width: auto;
+    }
+
+    .header-tekst h1 {
+      font-size: 1.45rem;
+      color: var(--kleur-goud);
+    }
+
+    .header-tekst p {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.55);
+      margin-top: 2px;
+    }
+
+    /* ─── HERO ─────────────────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, var(--kleur-groen-donker) 0%, var(--kleur-groen) 100%);
+      color: var(--wit);
+      padding: 56px 40px 48px;
+      text-align: center;
+    }
+
+    .hero h2 {
+      font-size: 2rem;
+      color: var(--wit);
+      margin-bottom: 12px;
+    }
+
+    .hero p {
+      font-size: 1.05rem;
+      opacity: 0.88;
+      max-width: 620px;
+      margin: 0 auto;
+    }
+
+    /* ─── MAIN LAYOUT ───────────────────────────────────────────────── */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ─── KAART ─────────────────────────────────────────────────────── */
+    .kaart {
+      background: var(--wit);
+      border-radius: var(--straal-groot);
+      box-shadow: var(--schaduw);
+      padding: 32px;
+      margin-top: 28px;
+    }
+
+    .kaart-titel {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--kleur-goud-licht);
+    }
+
+    .kaart-titel h2 {
+      font-size: 1.25rem;
+      color: var(--tekst-donker);
+    }
+
+    .kaart-titel .icoon {
+      width: 36px;
+      height: 36px;
+      background: var(--kleur-goud-licht);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    /* ─── FORMULIER ─────────────────────────────────────────────────── */
+    .formulier-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px 32px;
+    }
+
+    .veld {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .veld-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--tekst-medium);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .tooltip-wrapper {
+      position: relative;
+      display: inline-flex;
+    }
+
+    .tooltip-knop {
+      width: 18px;
+      height: 18px;
+      background: var(--rand);
+      border: none;
+      border-radius: 50%;
+      font-size: 0.72rem;
+      color: var(--tekst-licht);
+      cursor: help;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      transition: background 0.2s;
+    }
+
+    .tooltip-knop:hover { background: var(--kleur-goud); color: var(--wit); }
+
+    .tooltip-tekst {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--tekst-donker);
+      color: var(--wit);
+      font-size: 0.8rem;
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+      padding: 8px 12px;
+      border-radius: var(--straal);
+      width: 220px;
+      line-height: 1.4;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 200;
+      white-space: normal;
+    }
+
+    .tooltip-tekst::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: var(--tekst-donker);
+    }
+
+    .tooltip-wrapper:hover .tooltip-tekst { opacity: 1; }
+
+    .veld input[type="number"],
+    .veld input[type="text"] {
+      border: 1.5px solid var(--rand);
+      border-radius: var(--straal);
+      padding: 10px 14px;
+      font-family: inherit;
+      font-size: 0.97rem;
+      color: var(--tekst-donker);
+      background: var(--wit);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+
+    .veld input:focus,
+    .veld select:focus {
+      outline: none;
+      border-color: var(--rand-focus);
+      box-shadow: 0 0 0 3px rgba(201,160,74,0.15);
+    }
+
+    .veld select {
+      border: 1.5px solid var(--rand);
+      border-radius: var(--straal);
+      padding: 10px 14px;
+      font-family: inherit;
+      font-size: 0.97rem;
+      color: var(--tekst-donker);
+      background: var(--wit);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A7570' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+
+    .veld-eenheid {
+      position: relative;
+    }
+
+    .veld-eenheid input {
+      padding-right: 44px;
+    }
+
+    .eenheid-label {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.85rem;
+      color: var(--tekst-licht);
+      pointer-events: none;
+    }
+
+    .formulier-sectie {
+      margin-top: 28px;
+    }
+
+    .formulier-sectie-titel {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--kleur-goud-donker);
+      margin-bottom: 16px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--kleur-goud-licht);
+    }
+
+    /* ─── WAARSCHUWINGEN ────────────────────────────────────────────── */
+    .waarschuwingen {
+      margin-top: 16px;
+    }
+
+    .waarschuwing {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #FFF8E6;
+      border: 1.5px solid #F0C040;
+      border-radius: var(--straal);
+      padding: 10px 14px;
+      font-size: 0.875rem;
+      color: #7A5500;
+      margin-bottom: 8px;
+    }
+
+    .waarschuwing::before { content: '⚠️'; flex-shrink: 0; }
+
+    /* ─── BEREKEN KNOP ──────────────────────────────────────────────── */
+    .bereken-rij {
+      display: flex;
+      justify-content: center;
+      margin-top: 32px;
+    }
+
+    .btn-bereken {
+      background: linear-gradient(135deg, var(--kleur-goud) 0%, var(--kleur-goud-donker) 100%);
+      color: var(--wit);
+      border: none;
+      border-radius: 50px;
+      padding: 15px 48px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(201,160,74,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-bereken:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(201,160,74,0.45);
+    }
+
+    .btn-bereken:active { transform: translateY(0); }
+
+    /* ─── RESULTATEN ────────────────────────────────────────────────── */
+    #sectie-resultaten { display: none; }
+
+    .vergelijking-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .resultaat-kaart {
+      border-radius: var(--straal-groot);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .resultaat-kaart.box1 {
+      background: linear-gradient(145deg, var(--kleur-goud-licht), #FAF0DC);
+      border: 2px solid var(--kleur-goud);
+    }
+
+    .resultaat-kaart.box3 {
+      background: linear-gradient(145deg, var(--kleur-groen-licht), #E4F0E8);
+      border: 2px solid var(--kleur-groen);
+    }
+
+    .resultaat-kaart .kaart-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .box1 .kaart-label { color: var(--kleur-goud-donker); }
+    .box3 .kaart-label { color: var(--kleur-groen-donker); }
+
+    .resultaat-kaart h3 {
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+      color: var(--tekst-donker);
+    }
+
+    .uitkering-bedrag {
+      font-size: 2.1rem;
+      font-weight: 700;
+      font-family: 'Lato', sans-serif;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .box1 .uitkering-bedrag { color: var(--kleur-goud-donker); }
+    .box3 .uitkering-bedrag { color: var(--kleur-groen-donker); }
+
+    .uitkering-label {
+      font-size: 0.82rem;
+      color: var(--tekst-licht);
+      margin-bottom: 16px;
+    }
+
+    .resultaat-details {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      border-top: 1px solid rgba(0,0,0,0.08);
+      padding-top: 14px;
+    }
+
+    .detail-rij {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.86rem;
+    }
+
+    .detail-rij .label { color: var(--tekst-medium); }
+    .detail-rij .waarde { font-weight: 600; color: var(--tekst-donker); }
+
+    /* ─── CONCLUSIE BANNER ──────────────────────────────────────────── */
+    .conclusie-banner {
+      border-radius: var(--straal-groot);
+      padding: 22px 28px;
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .conclusie-banner.box1-wint {
+      background: linear-gradient(135deg, var(--kleur-goud) 0%, var(--kleur-goud-donker) 100%);
+      color: var(--wit);
+    }
+
+    .conclusie-banner.box3-wint {
+      background: linear-gradient(135deg, var(--kleur-groen) 0%, var(--kleur-groen-donker) 100%);
+      color: var(--wit);
+    }
+
+    .conclusie-banner.gelijk {
+      background: #F0F0F0;
+      color: var(--tekst-donker);
+    }
+
+    .conclusie-icoon {
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+
+    .conclusie-tekst strong {
+      display: block;
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .conclusie-tekst p {
+      font-size: 0.88rem;
+      opacity: 0.9;
+    }
+
+    /* ─── GRAFIEK ───────────────────────────────────────────────────── */
+    .grafiek-container {
+      position: relative;
+      height: 340px;
+    }
+
+    /* ─── PDF KNOP ──────────────────────────────────────────────────── */
+    .pdf-rij {
+      display: flex;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .btn-pdf {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--wit);
+      border: 2px solid var(--kleur-groen);
+      color: var(--kleur-groen-donker);
+      border-radius: 50px;
+      padding: 12px 36px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .btn-pdf:hover {
+      background: var(--kleur-groen);
+      color: var(--wit);
+    }
+
+    /* ─── TABEL (invoersamenvatting in PDF) ─────────────────────────── */
+    .invoer-samenvatting {
+      display: none;
+    }
+
+    /* ─── DISCLAIMER ────────────────────────────────────────────────── */
+    .disclaimer {
+      font-size: 0.78rem;
+      color: var(--tekst-licht);
+      text-align: center;
+      margin-top: 20px;
+      padding: 0 16px;
+      line-height: 1.5;
+    }
+
+    /* ─── FOOTER ────────────────────────────────────────────────────── */
+    .site-footer {
+      margin-top: 56px;
+      background: var(--kleur-groen-donker);
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+      padding: 28px 20px;
+      font-size: 0.82rem;
+    }
+
+    .site-footer a { color: var(--kleur-goud); text-decoration: none; }
+    .site-footer a:hover { text-decoration: underline; }
+
+    /* ─── RESPONSIVE ────────────────────────────────────────────────── */
+    @media (max-width: 700px) {
+      .site-header { padding: 16px 20px; }
+      .hero { padding: 36px 20px; }
+      .hero h2 { font-size: 1.5rem; }
+      .kaart { padding: 20px; }
+      .formulier-grid { grid-template-columns: 1fr; }
+      .vergelijking-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ─── LADEN ANIMATIE ────────────────────────────────────────────── */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in { animation: fadeInUp 0.4s ease both; }
+  </style>
+</head>
+
+<body>
+
+  <!-- ─── HEADER ───────────────────────────────────────────── -->
+  <header class="site-header">
+    <img class="logo" src="data:image/png;base64,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" alt="Studio Rendement">
+    <div class="header-tekst">
+      <h1>Rekentool Pensioenbeleggen vs. Beleggen in box 3</h1>
+    </div>
+  </header>
+
+  <!-- ─── HERO ─────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="container">
+      <h2>Wat levert meer op?</h2>
+      <p>Bereken het eindresultaat van pensioenbeleggen ten opzichte van vrij beleggen in Box 3.</p>
+    </div>
+  </section>
+
+  <!-- ─── FORMULIER ────────────────────────────────────────── -->
+  <main class="container">
+    <form id="rekentool-form" novalidate>
+
+      <div class="kaart">
+        <div class="kaart-titel">
+          <div class="icoon">👤</div>
+          <h2>Persoonlijke gegevens</h2>
+        </div>
+
+        <div class="formulier-grid">
+
+          <div class="veld">
+            <label class="veld-label" for="huidigLeeftijd">
+              Huidige leeftijd
+              <div class="tooltip-wrapper">
+                <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+                <span class="tooltip-tekst">Uw leeftijd op dit moment. De berekening loopt vanaf deze leeftijd.</span>
+              </div>
+            </label>
+            <div class="veld-eenheid">
+              <input type="number" id="huidigLeeftijd" value="40" min="18" max="80" step="1">
+              <span class="eenheid-label">jaar</span>
+            </div>
+          </div>
+
+          <div class="veld">
+            <label class="veld-label" for="stopLeeftijd">
+              Inleg stoppen op leeftijd
+              <div class="tooltip-wrapper">
+                <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+                <span class="tooltip-tekst">Tot welke leeftijd u jaarlijks geld inlegt. Vaak gelijk aan uw pensioenleeftijd.</span>
+              </div>
+            </label>
+            <div class="veld-eenheid">
+              <input type="number" id="stopLeeftijd" value="67" min="18" max="90" step="1">
+              <span class="eenheid-label">jaar</span>
+            </div>
+          </div>
+
+          <div class="veld">
+            <label class="veld-label" for="jaarlijkseInleg">
+              Jaarlijkse inleg
+              <div class="tooltip-wrapper">
+                <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+                <span class="tooltip-tekst">Het bedrag dat u jaarlijks inlegt. Voor Box 1 is dit het brutobedrag waarvoor u belastingaftrek krijgt.</span>
+              </div>
+            </label>
+            <div class="veld-eenheid">
+              <input type="number" id="jaarlijkseInleg" value="9000" min="100" max="500000" step="100">
+              <span class="eenheid-label">€</span>
+            </div>
+          </div>
+
+          <div class="veld">
+            <label class="veld-label" for="startUitkering">
+              Uitkering starten op leeftijd
+              <div class="tooltip-wrapper">
+                <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+                <span class="tooltip-tekst">Vanaf welke leeftijd u de uitkeringen ontvangt.</span>
+              </div>
+            </label>
+            <div class="veld-eenheid">
+              <input type="number" id="startUitkering" value="67" min="18" max="90" step="1">
+              <span class="eenheid-label">jaar</span>
+            </div>
+          </div>
+
+          <div class="veld">
+            <label class="veld-label" for="duurUitkering">
+              Duur uitkering
+              <div class="tooltip-wrapper">
+                <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+                <span class="tooltip-tekst">Aantal jaren dat u uitkeringen ontvangt.</span>
+              </div>
+            </label>
+            <div class="veld-eenheid">
+              <input type="number" id="duurUitkering" value="20" min="1" max="40" step="1">
+              <span class="eenheid-label">jaar</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ─── BELASTING ─────────────────────────────────────── -->
+      <div class="kaart">
+        <div class="kaart-titel">
+          <div class="icoon">📋</div>
+          <h2>Belastingparameters</h2>
+        </div>
+
+        <div class="formulier-grid">
+
+          <div class="veld">
+            <label class="veld-label" for="teruggaveIB">
+              Belastingtarief box 1
+              <div class="tooltip-wrapper">
+                <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+                <span class="tooltip-tekst">Uw marginale belastingtarief in box 1 (2026): schijf 1 t/m €38.856 → 35,82% | schijf 2 €38.856–€76.817 → 37,48% | schijf 3 boven €76.817 → 49,50%.</span>
+              </div>
+            </label>
+            <select id="teruggaveIB">
+              <option value="35.75">35,75% – Schijf 1 (t/m € 38.883)</option>
+              <option value="37.56" selected>37,56% – Schijf 2 (€ 38.883 – € 78.426)</option>
+              <option value="49.50">49,50% – Schijf 3 (boven € 78.426)</option>
+            </select>
+          </div>
+
+          <div class="veld">
+            <label class="veld-label" for="ibTarief">
+              Belastingtarief tijdens de uitkeringsfase
+              <div class="tooltip-wrapper">
+                <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+                <span class="tooltip-tekst">Box 1-tarief 2026. Onder 67 jaar: schijf 1 t/m €38.883 → 35,75% | schijf 2 → 37,56% | schijf 3 → 49,50%. Vanaf 67 jaar (geen AOW-premie): schijf 1 → 17,85% | schijf 2 → 37,56% | schijf 3 → 49,50%. De opties passen automatisch aan op basis van de ingevoerde startleeftijd uitkering.</span>
+              </div>
+            </label>
+            <select id="ibTarief">
+              <option value="35.75">35,75% – Schijf 1 (t/m € 38.883)</option>
+              <option value="37.56" selected>37,56% – Schijf 2 (€ 38.883 – € 78.426)</option>
+              <option value="49.50">49,50% – Schijf 3 (boven € 78.426)</option>
+            </select>
+          </div>
+
+          <div class="veld">
+            <label class="veld-label" for="zvwPremie">
+              Premie zorgverzekering
+              <div class="tooltip-wrapper">
+                <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+                <span class="tooltip-tekst">De inkomensafhankelijke bijdrage Zorgverzekeringswet (ZVW) die verschuldigd is over de Box 1 uitkering. In 2026 bedraagt dit 4,85% (max inkomen €79.409).</span>
+              </div>
+            </label>
+            <div class="veld-eenheid">
+              <input type="number" id="zvwPremie" value="4.85" min="0" max="20" step="0.01">
+              <span class="eenheid-label">%</span>
+            </div>
+          </div>
+
+          <div class="veld">
+            <label class="veld-label" for="box3Heffing">
+              Box 3 heffing (effectief)
+              <div class="tooltip-wrapper">
+                <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+                <span class="tooltip-tekst">In 2026 bedraagt de effectieve Box 3-heffing 2,16% (tarief 36% × fictief rendement 6%). Dit is een indicatie — het werkelijke percentage is o.a. afhankelijk van de samenstelling van het vermogen (spaargeld, beleggingen).</span>
+              </div>
+            </label>
+            <div class="veld-eenheid">
+              <input type="number" id="box3Heffing" value="2.16" min="0" max="10" step="0.01">
+              <span class="eenheid-label">%</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ─── RENDEMENT ─────────────────────────────────────── -->
+      <div class="kaart">
+        <div class="kaart-titel">
+          <div class="icoon">📈</div>
+          <h2>Rendementsaannames</h2>
+        </div>
+
+        <div class="formulier-grid">
+
+          <div class="veld">
+            <label class="veld-label" for="rendementOpbouw">
+              Rendement opbouwfase
+              <div class="tooltip-wrapper">
+                <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+                <span class="tooltip-tekst">Het verwachte gemiddelde jaarlijkse rendement op uw inleg tijdens de opbouwfase. Houd rekening met een mix van aandelen en obligaties.</span>
+              </div>
+            </label>
+            <div class="veld-eenheid">
+              <input type="number" id="rendementOpbouw" value="6.00" min="0" max="20" step="0.1">
+              <span class="eenheid-label">%</span>
+            </div>
+          </div>
+
+          <div class="veld">
+            <label class="veld-label" for="rendementUitkering">
+              Rendement uitkeringsfase
+              <div class="tooltip-wrapper">
+                <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+                <span class="tooltip-tekst">Het verwachte jaarlijkse rendement tijdens de uitkeringsfase. Doorgaans lager dan de opbouwfase vanwege een defensievere beleggingsmix.</span>
+              </div>
+            </label>
+            <div class="veld-eenheid">
+              <input type="number" id="rendementUitkering" value="4.00" min="0" max="15" step="0.1">
+              <span class="eenheid-label">%</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ─── WAARSCHUWINGEN ─────────────────────────────────── -->
+      <div id="waarschuwingen-container" class="waarschuwingen"></div>
+
+      <!-- ─── BEREKEN KNOP ──────────────────────────────────── -->
+      <div class="bereken-rij">
+        <button type="submit" class="btn-bereken">Berekening uitvoeren →</button>
+      </div>
+
+    </form>
+
+    <!-- ─── RESULTATEN ────────────────────────────────────────── -->
+    <section id="sectie-resultaten">
+
+      <div class="kaart fade-in">
+        <div class="kaart-titel">
+          <div class="icoon">💰</div>
+          <h2>Resultaten vergelijking</h2>
+        </div>
+
+        <div class="vergelijking-grid">
+
+          <!-- Box 1 -->
+          <div class="resultaat-kaart box1">
+            <div class="kaart-label">Pensioenbeleggen</div>
+            <div class="uitkering-bedrag" id="res-netto-box1">–</div>
+            <div class="resultaat-details">
+              <div class="detail-rij">
+                <span class="label">Bruto uitkering p.j.</span>
+                <span class="waarde" id="res-bruto-box1">–</span>
+              </div>
+              <div class="detail-rij">
+                <span class="label">Totaal netto ingelegd</span>
+                <span class="waarde" id="res-ingelegd">–</span>
+              </div>
+              <div class="detail-rij">
+                <span class="label">Totaal netto uitkeringen</span>
+                <span class="waarde" id="res-totaal-box1">–</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Box 3 -->
+          <div class="resultaat-kaart box3">
+            <div class="kaart-label">Vrij sparen / beleggen</div>
+            <div class="uitkering-bedrag" id="res-netto-box3">–</div>
+            <div class="resultaat-details">
+              <div class="detail-rij">
+                <span class="label">Totaal netto ingelegd</span>
+                <span class="waarde" id="res-ingelegd-box3">–</span>
+              </div>
+              <div class="detail-rij">
+                <span class="label">Totaal netto uitkeringen</span>
+                <span class="waarde" id="res-totaal-box3">–</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Conclusie -->
+        <div class="conclusie-banner" id="conclusie-banner">
+          <div class="conclusie-icoon" id="conclusie-icoon">🏆</div>
+          <div class="conclusie-tekst">
+            <strong id="conclusie-titel">–</strong>
+            <p id="conclusie-detail">–</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ─── GRAFIEK ───────────────────────────────────────── -->
+      <div class="kaart fade-in">
+        <div class="kaart-titel">
+          <div class="icoon">📊</div>
+          <h2>Vermogensontwikkeling</h2>
+        </div>
+        <div class="grafiek-container">
+          <canvas id="vermogensgrafiek"></canvas>
+        </div>
+        <p class="disclaimer">De grafiek toont het geaccumuleerde vermogen per leeftijdsjaar. De stippellijn markeert de start van de uitkeringsfase.</p>
+      </div>
+
+      <!-- ─── PDF EXPORT ─────────────────────────────────────── -->
+      <div class="kaart fade-in">
+        <div class="pdf-rij">
+          <button type="button" class="btn-pdf" id="btn-pdf-download">
+            ⬇ Download berekening als PDF
+          </button>
+        </div>
+      </div>
+
+      <p class="disclaimer" style="margin-bottom: 40px;">
+        Deze berekening is indicatief en gebaseerd op de ingevoerde aannames. De werkelijke uitkomst kan afwijken door wijzigingen in belastingwetgeving, rendement en persoonlijke omstandigheden. Raadpleeg altijd een financieel adviseur voor persoonlijk advies.
+      </p>
+
+    </section>
+
+  </main>
+
+  <!-- ─── FOOTER ───────────────────────────────────────────── -->
+  <footer class="site-footer">
+    <img src="data:image/png;base64,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" alt="Studio Rendement" style="height:36px;width:auto;opacity:0.85;margin-bottom:12px;">
+    <p>© 2026 Studio Rendement &nbsp;·&nbsp; <a href="https://www.studiorendement.com" target="_blank">studiorendement.com</a></p>
+  </footer>
+
+  <!-- ─── JAVASCRIPT ────────────────────────────────────────── -->
+  <script>
+  (function () {
+
+    /* ─── HULPFUNCTIES ────────────────────────────────────── */
+
+    function pmt(rate, nper, pv) {
+      /* Berekent de periodieke uitkering voor een annuïteit (type 0 = einde periode).
+         rate  = periodiek rentepercentage (als decimaal)
+         nper  = aantal periodes
+         pv    = huidige waarde (positief = te ontvangen kapitaal)
+         Geeft een positief getal terug (de jaarlijkse uitkering). */
+      if (Math.abs(rate) < 1e-10) return pv / nper;
+      const factor = Math.pow(1 + rate, nper);
+      return pv * rate * factor / (factor - 1);
+    }
+
+    function formatEuro(waarde, decimalen = 0) {
+      return '€ ' + waarde.toLocaleString('nl-NL', {
+        minimumFractionDigits: decimalen,
+        maximumFractionDigits: decimalen
+      });
+    }
+
+    function formatPct(waarde) {
+      return (waarde * 100).toLocaleString('nl-NL', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) + '%';
+    }
+
+    /* ─── KERNBEREKENING ──────────────────────────────────── */
+
+    function berekenVergelijking(p) {
+      const waarschuwingen = [];
+
+      if (p.startUitkering < p.stopLeeftijd) {
+        waarschuwingen.push(
+          'De startleeftijd voor de uitkering ligt vóór het stoppen van de inleg. ' +
+          'Verhoog de startleeftijd uitkering, of verlaag de stoppleeftijd inleg.'
+        );
+      }
+      if (p.startUitkering + p.duurUitkering > 95) {
+        const maxDuur = 95 - p.startUitkering;
+        waarschuwingen.push(
+          `De uitkering loopt tot voorbij leeftijd 95. Verlaag de duur naar maximaal ${maxDuur} jaar.`
+        );
+      }
+
+      const leeftijden  = [];
+      const kapBox1Reeks = [];
+      const kapBox3Reeks = [];
+
+      let kap1 = 0;
+      let kap3 = 0;
+
+      const nettoInleg      = p.jaarlijkseInleg * (1 - p.teruggaveIB);
+      const netRndOpbouw3   = p.rendementOpbouw - p.box3Heffing;
+      const netRndUitkering3 = p.rendementUitkering - p.box3Heffing;
+
+      /* Opbouwfase: van huidigeLeeftijd t/m (startUitkering - 1) */
+      for (let lft = p.huidigLeeftijd; lft < p.startUitkering; lft++) {
+        const inleg1 = lft < p.stopLeeftijd ? p.jaarlijkseInleg : 0;
+        kap1 = (kap1 + inleg1) * (1 + p.rendementOpbouw);
+
+        const inleg3 = lft < p.stopLeeftijd ? nettoInleg : 0;
+        kap3 = (kap3 + inleg3) * (1 + netRndOpbouw3);
+
+        leeftijden.push(lft + 1);
+        kapBox1Reeks.push(Math.round(kap1));
+        kapBox3Reeks.push(Math.round(kap3));
+      }
+
+      /* Kapitaal bij aanvang uitkering */
+      const kapBijStart1 = kap1;
+      const kapBijStart3 = kap3;
+
+      /* PMT berekeningen */
+      const brutoPmt1    = pmt(p.rendementUitkering, p.duurUitkering, kapBijStart1);
+      const ibBedrag     = brutoPmt1 * p.ibTarief;
+      const zvwBedrag    = brutoPmt1 * p.zvwPremie;
+      const nettoPmt1    = brutoPmt1 - ibBedrag - zvwBedrag;
+
+      const nettoPmt3    = pmt(netRndUitkering3, p.duurUitkering, kapBijStart3);
+
+      /* Uitkeringsfase: kapitaalverloop na aftrek uitkering */
+      for (let i = 0; i < p.duurUitkering; i++) {
+        const lft = p.startUitkering + i;
+        kap1 = Math.max(0, kap1 * (1 + p.rendementUitkering) - brutoPmt1);
+        kap3 = Math.max(0, kap3 * (1 + netRndUitkering3) - nettoPmt3);
+
+        leeftijden.push(lft + 1);
+        kapBox1Reeks.push(Math.round(kap1));
+        kapBox3Reeks.push(Math.round(kap3));
+      }
+
+      /* Totalen */
+      const aantalInlegJaren    = Math.max(0, Math.min(p.stopLeeftijd, p.startUitkering) - p.huidigLeeftijd);
+      const totaalNettoIngelegd = nettoInleg * aantalInlegJaren;
+      const totaalNetto1        = nettoPmt1 * p.duurUitkering;
+      const totaalNetto3        = nettoPmt3 * p.duurUitkering;
+
+      return {
+        waarschuwingen,
+        brutoPmt1,
+        ibBedrag,
+        zvwBedrag,
+        nettoPmt1,
+        nettoPmt3,
+        nettoInleg,
+        netRndOpbouw3,
+        totaalNettoIngelegd,
+        totaalNettoIngelegd3: totaalNettoIngelegd,
+        totaalNetto1,
+        totaalNetto3,
+        leeftijden,
+        kapBox1Reeks,
+        kapBox3Reeks,
+        startUitkering: p.startUitkering
+      };
+    }
+
+    /* ─── GRAFIEK ─────────────────────────────────────────── */
+    let grafiekInstantie = null;
+
+    function toonGrafiek(resultaat) {
+      const ctx = document.getElementById('vermogensgrafiek').getContext('2d');
+
+      if (grafiekInstantie) { grafiekInstantie.destroy(); }
+
+      const startIdx = resultaat.leeftijden.indexOf(resultaat.startUitkering);
+
+      grafiekInstantie = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: resultaat.leeftijden,
+          datasets: [
+            {
+              label: 'Box 1 – Pensioenbeleggen',
+              data: resultaat.kapBox1Reeks,
+              borderColor: '#C5A643',
+              backgroundColor: 'rgba(197,166,67,0.10)',
+              borderWidth: 2.5,
+              pointRadius: 0,
+              pointHoverRadius: 5,
+              tension: 0.3,
+              fill: true
+            },
+            {
+              label: 'Box 3 – Vrij sparen / beleggen',
+              data: resultaat.kapBox3Reeks,
+              borderColor: '#09302A',
+              backgroundColor: 'rgba(9,48,42,0.08)',
+              borderWidth: 2.5,
+              pointRadius: 0,
+              pointHoverRadius: 5,
+              tension: 0.3,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          animation: false,
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                font: { family: 'Lato, sans-serif', size: 13 },
+                padding: 20,
+                usePointStyle: true,
+                pointStyleWidth: 16
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return ' ' + context.dataset.label + ': ' +
+                    formatEuro(context.parsed.y);
+                }
+              }
+            },
+            annotation: undefined
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Leeftijd',
+                font: { family: 'Lato, sans-serif', size: 12 }
+              },
+              grid: { color: 'rgba(0,0,0,0.05)' },
+              ticks: { font: { family: 'Lato, sans-serif', size: 11 } }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Vermogen (€)',
+                font: { family: 'Lato, sans-serif', size: 12 }
+              },
+              grid: { color: 'rgba(0,0,0,0.05)' },
+              ticks: {
+                font: { family: 'Lato, sans-serif', size: 11 },
+                callback: v => '€' + (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v)
+              }
+            }
+          }
+        },
+        plugins: [{
+          /* Verticale stippellijn bij start uitkering */
+          id: 'startLijn',
+          afterDraw(chart) {
+            if (startIdx < 0) return;
+            const { ctx: c, chartArea: { top, bottom }, scales: { x } } = chart;
+            const n = chart.data.labels.length;
+            const xPos = x.left + (startIdx / (n - 1)) * (x.right - x.left);
+            if (xPos < x.left || xPos > x.right) return;
+            c.save();
+            c.beginPath();
+            c.moveTo(xPos, top);
+            c.lineTo(xPos, bottom);
+            c.strokeStyle = 'rgba(60,60,60,0.55)';
+            c.lineWidth = 2;
+            c.setLineDash([6, 4]);
+            c.stroke();
+            c.setLineDash([]);
+            c.fillStyle = 'rgba(60,60,60,0.75)';
+            c.font = '600 11px Lato, sans-serif';
+            c.textAlign = 'left';
+            c.fillText('Start uitkering', xPos + 6, top + 14);
+            c.restore();
+          }
+        }]
+      });
+    }
+
+    /* ─── RESULTATEN WEERGEVEN ────────────────────────────── */
+
+    function toonResultaten(res, params) {
+      /* Uitkeringsbedragen */
+      document.getElementById('res-netto-box1').textContent = formatEuro(res.nettoPmt1);
+      document.getElementById('res-netto-box3').textContent = formatEuro(res.nettoPmt3);
+      document.getElementById('res-bruto-box1').textContent = formatEuro(res.brutoPmt1);
+      document.getElementById('res-ingelegd').textContent =
+        formatEuro(res.totaalNettoIngelegd);
+      document.getElementById('res-totaal-box1').textContent =
+        formatEuro(res.totaalNetto1);
+
+      document.getElementById('res-ingelegd-box3').textContent =
+        formatEuro(res.totaalNettoIngelegd3);
+      document.getElementById('res-totaal-box3').textContent =
+        formatEuro(res.totaalNetto3);
+
+      /* Conclusie */
+      const banner  = document.getElementById('conclusie-banner');
+      const icoon   = document.getElementById('conclusie-icoon');
+      const titel   = document.getElementById('conclusie-titel');
+      const detail  = document.getElementById('conclusie-detail');
+
+      banner.className = 'conclusie-banner';
+
+      if (Math.abs(res.totaalNetto1 - res.totaalNetto3) < 1) {
+        banner.classList.add('gelijk');
+        icoon.textContent = '⚖️';
+        titel.textContent = 'Geen significant verschil';
+        detail.textContent =
+          'Beide opties leveren nagenoeg hetzelfde op bij de ingevoerde aannames.';
+      } else if (res.totaalNetto1 > res.totaalNetto3) {
+        const verschil = res.totaalNetto1 - res.totaalNetto3;
+        banner.classList.add('box1-wint');
+        icoon.textContent = '🏆';
+        titel.textContent = 'Pensioenbeleggen (Box 1) is aantrekkelijker';
+        detail.textContent =
+          `U ontvangt in totaal ${formatEuro(verschil)} meer netto uitkering dan bij Box 3 sparen.`;
+      } else {
+        const verschil = res.totaalNetto3 - res.totaalNetto1;
+        banner.classList.add('box3-wint');
+        icoon.textContent = '🏆';
+        titel.textContent = 'Box 3 sparen / beleggen is aantrekkelijker';
+        detail.textContent =
+          `U ontvangt in totaal ${formatEuro(verschil)} meer netto dan bij Box 1 pensioenbeleggen.`;
+      }
+
+      /* Sectie eerst zichtbaar maken zodat canvas afmetingen heeft */
+      const sectie = document.getElementById('sectie-resultaten');
+      sectie.style.display = 'block';
+
+      /* Grafiek renderen na twee paint-frames zodat layout volledig is */
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          toonGrafiek(res);
+          sectie.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+    }
+
+    /* ─── WAARSCHUWINGEN ──────────────────────────────────── */
+
+    function toonWaarschuwingen(lijst) {
+      const container = document.getElementById('waarschuwingen-container');
+      container.innerHTML = '';
+      lijst.forEach(tekst => {
+        const div = document.createElement('div');
+        div.className = 'waarschuwing';
+        div.textContent = tekst;
+        container.appendChild(div);
+      });
+    }
+
+    /* ─── FORMULIER VERWERKEN ─────────────────────────────── */
+
+    document.getElementById('rekentool-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      function getVal(id) {
+        return parseFloat(document.getElementById(id).value) || 0;
+      }
+
+      const params = {
+        huidigLeeftijd:    Math.round(getVal('huidigLeeftijd')),
+        stopLeeftijd:      Math.round(getVal('stopLeeftijd')),
+        startUitkering:    Math.round(getVal('startUitkering')),
+        duurUitkering:     Math.round(getVal('duurUitkering')),
+        jaarlijkseInleg:   getVal('jaarlijkseInleg'),
+        teruggaveIB:       getVal('teruggaveIB')        / 100,
+        ibTarief:          getVal('ibTarief')           / 100,
+        zvwPremie:         getVal('zvwPremie')          / 100,
+        rendementOpbouw:   getVal('rendementOpbouw')    / 100,
+        rendementUitkering:getVal('rendementUitkering') / 100,
+        box3Heffing:       getVal('box3Heffing')        / 100
+      };
+
+      const resultaat = berekenVergelijking(params);
+
+      toonWaarschuwingen(resultaat.waarschuwingen);
+      toonResultaten(resultaat, params);
+    });
+
+    /* ─── PDF EXPORT ──────────────────────────────────────── */
+
+    document.getElementById('btn-pdf-download').addEventListener('click', function () {
+      /* Canvas naar afbeelding vóór export (html2pdf kan canvas niet direct renderen) */
+      const canvas = document.getElementById('vermogensgrafiek');
+      const grafiekImg = canvas.toDataURL('image/png');
+
+      /* Tijdelijk img-element aanmaken */
+      const img = document.createElement('img');
+      img.src = grafiekImg;
+      img.style.cssText = 'width:100%;max-width:700px;display:block;margin:0 auto;';
+      img.id = 'grafiek-pdf-img';
+
+      const grafiekContainer = document.querySelector('.grafiek-container');
+      grafiekContainer.appendChild(img);
+      canvas.style.display = 'none';
+
+      const element = document.getElementById('sectie-resultaten');
+
+      const opties = {
+        margin:       [12, 10, 12, 10],
+        filename:     'Pensioenbeleggen_vs_Box3_Studio_Rendement.pdf',
+        image:        { type: 'jpeg', quality: 0.97 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      html2pdf().set(opties).from(element).save().then(function () {
+        canvas.style.display = 'block';
+        if (img.parentNode) img.parentNode.removeChild(img);
+      });
+    });
+
+  })();
+  </script>
+</body>
+</html>

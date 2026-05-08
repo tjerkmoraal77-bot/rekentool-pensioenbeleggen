@@ -506,9 +506,15 @@
       color: var(--wit);
     }
 
-    /* ─── TABEL (invoersamenvatting in PDF) ─────────────────────────── */
-    .invoer-samenvatting {
-      display: none;
+    /* ─── AFDRUKSTIJLEN ────────────────────────────────────────────── */
+    @media print {
+      body { background: white; }
+      .site-header, .hero, #rekentool-form, .btn-pdf, .disclaimer:last-of-type { display: none !important; }
+      #sectie-resultaten { display: block !important; }
+      .kaart { box-shadow: none; border: 1px solid #ddd; margin-top: 16px; break-inside: avoid; }
+      .vergelijking-grid { grid-template-columns: 1fr 1fr; }
+      .grafiek-container { height: 260px; }
+      .site-footer { margin-top: 20px; }
     }
 
     /* ─── DISCLAIMER ────────────────────────────────────────────────── */
@@ -874,7 +880,7 @@
       <div class="kaart fade-in">
         <div class="pdf-rij">
           <button type="button" class="btn-pdf" id="btn-pdf-download">
-            ⬇ Download berekening als PDF
+            🖨 Afdrukken / opslaan als PDF
           </button>
         </div>
       </div>
@@ -1233,38 +1239,10 @@
       toonResultaten(resultaat, params);
     });
 
-    /* ─── PDF EXPORT ──────────────────────────────────────── */
+    /* ─── PDF EXPORT (via afdrukken) ─────────────────────── */
 
     document.getElementById('btn-pdf-download').addEventListener('click', function () {
-      /* Canvas naar afbeelding vóór export (html2pdf kan canvas niet direct renderen) */
-      const canvas = document.getElementById('vermogensgrafiek');
-      const grafiekImg = canvas.toDataURL('image/png');
-
-      /* Tijdelijk img-element aanmaken */
-      const img = document.createElement('img');
-      img.src = grafiekImg;
-      img.style.cssText = 'width:100%;max-width:700px;display:block;margin:0 auto;';
-      img.id = 'grafiek-pdf-img';
-
-      const grafiekContainer = document.querySelector('.grafiek-container');
-      grafiekContainer.appendChild(img);
-      canvas.style.display = 'none';
-
-      const element = document.getElementById('sectie-resultaten');
-
-      const opties = {
-        margin:       [12, 10, 12, 10],
-        filename:     'Pensioenbeleggen_vs_Box3_Studio_Rendement.pdf',
-        image:        { type: 'jpeg', quality: 0.97 },
-        html2canvas:  { scale: 2, useCORS: true, logging: false },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-      };
-
-      html2pdf().set(opties).from(element).save().then(function () {
-        canvas.style.display = 'block';
-        if (img.parentNode) img.parentNode.removeChild(img);
-      });
+      window.print();
     });
 
   })();

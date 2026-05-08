@@ -542,11 +542,24 @@
       }
       .site-header img.logo { height: 36px; }
       .header-tekst h1 { font-size: 1rem; line-height: 1.3; }
+
       .hero { padding: 28px 16px; }
       .hero h2 { font-size: 1.3rem; }
       .hero p { font-size: 0.95rem; }
+
       .kaart { padding: 16px; }
-      .formulier-grid { grid-template-columns: 1fr; }
+      .kaart-titel h2 { font-size: 1.05rem; }
+
+      .formulier-grid { grid-template-columns: 1fr; gap: 16px; }
+
+      /* Labels kleiner en minder spatiering zodat ze op één regel passen */
+      .veld-label {
+        font-size: 0.75rem;
+        letter-spacing: 0.02em;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
       .vergelijking-grid { grid-template-columns: 1fr; }
       .uitkering-bedrag { font-size: 1.7rem; }
       .conclusie-banner { flex-direction: column; gap: 10px; padding: 18px; }

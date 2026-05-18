@@ -1,0 +1,690 @@
+<!-- ============================================================
+  Rekentool ZZP 2026 – Studio Rendement
+  WordPress-versie: plak dit in een "Aangepaste HTML" blok.
+  Header en footer van WordPress worden door het thema geleverd.
+  ============================================================ -->
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<!-- Chart.js + html2pdf -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+/* ── Alle stijlen zijn gescoord op .sr-zzp om conflicten met het
+      WordPress-thema te voorkomen. ── */
+
+.sr-zzp {
+  --kleur-goud:         #C5A643;
+  --kleur-goud-donker:  #A08830;
+  --kleur-goud-licht:   #F2E9C8;
+  --kleur-groen:        #09302A;
+  --kleur-groen-donker: #0C1915;
+  --achtergrond:        #F9F7F4;
+  --wit:                #FFFFFF;
+  --tekst-donker:       #1A1A1A;
+  --tekst-medium:       #4A4A4A;
+  --tekst-licht:        #7A7570;
+  --rand:               #E8E2D9;
+  --rand-focus:         #C5A643;
+  --schaduw:            0 2px 12px rgba(0,0,0,0.08);
+  --straal:             8px;
+  --straal-groot:       14px;
+
+  font-family: 'Lato', Georgia, sans-serif;
+  background: var(--achtergrond);
+  color: var(--tekst-donker);
+  line-height: 1.6;
+}
+
+.sr-zzp *, .sr-zzp *::before, .sr-zzp *::after { box-sizing: border-box; }
+.sr-zzp h1, .sr-zzp h2, .sr-zzp h3 { font-family: Georgia, serif; font-weight: normal; line-height: 1.3; margin: 0; }
+.sr-zzp p { margin: 0; }
+
+/* HERO */
+.sr-zzp .hero {
+  background: linear-gradient(135deg, var(--kleur-groen-donker) 0%, var(--kleur-groen) 100%);
+  color: var(--wit); padding: 56px 40px 48px; text-align: center;
+}
+.sr-zzp .hero h2 { font-size: 2rem; color: var(--wit); margin-bottom: 12px; }
+.sr-zzp .hero p  { font-size: 1.05rem; opacity: 0.88; max-width: 620px; margin: 0 auto; }
+
+/* LAYOUT */
+.sr-zzp .container { max-width: 100%; padding: 0 40px; }
+
+/* KAART */
+.sr-zzp .kaart {
+  background: var(--wit); border-radius: var(--straal-groot);
+  box-shadow: var(--schaduw); padding: 32px; margin-top: 28px;
+}
+.sr-zzp .kaart-titel {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 2px solid var(--kleur-goud-licht);
+}
+.sr-zzp .kaart-titel h2 { font-size: 1.25rem; color: var(--tekst-donker); }
+.sr-zzp .kaart-titel .icoon {
+  width: 36px; height: 36px; background: var(--kleur-goud-licht);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+}
+
+/* FORMULIER */
+.sr-zzp .formulier-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 32px; }
+.sr-zzp .veld { display: flex; flex-direction: column; gap: 6px; }
+.sr-zzp .veld-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.88rem; font-weight: 600; color: var(--tekst-medium);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.sr-zzp .veld input[type="number"] {
+  border: 1.5px solid var(--rand); border-radius: var(--straal);
+  padding: 10px 14px; font-family: inherit; font-size: 0.97rem;
+  color: var(--tekst-donker); background: var(--wit);
+  transition: border-color 0.2s, box-shadow 0.2s; width: 100%;
+}
+.sr-zzp .veld input:focus {
+  outline: none; border-color: var(--rand-focus);
+  box-shadow: 0 0 0 3px rgba(197,166,67,0.15);
+}
+.sr-zzp .veld-eenheid { position: relative; }
+.sr-zzp .veld-eenheid input { padding-right: 44px; }
+.sr-zzp .eenheid-label {
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  font-size: 0.85rem; color: var(--tekst-licht); pointer-events: none;
+}
+
+/* RANGE SLIDER */
+.sr-zzp .slider-wrapper { display: flex; flex-direction: column; gap: 8px; }
+.sr-zzp .slider-rij { display: flex; align-items: center; gap: 12px; }
+.sr-zzp input[type="range"] {
+  flex: 1; -webkit-appearance: none; height: 6px;
+  background: var(--kleur-goud-licht); border-radius: 3px; outline: none;
+}
+.sr-zzp input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--kleur-goud); cursor: pointer;
+  box-shadow: 0 2px 6px rgba(197,166,67,0.4);
+}
+.sr-zzp .slider-invoer {
+  width: 110px; border: 1.5px solid var(--rand); border-radius: var(--straal);
+  padding: 8px 12px; font-family: inherit; font-size: 0.97rem;
+  color: var(--tekst-donker); text-align: right;
+}
+.sr-zzp .slider-invoer:focus {
+  outline: none; border-color: var(--rand-focus);
+  box-shadow: 0 0 0 3px rgba(197,166,67,0.15);
+}
+
+/* TOOLTIP */
+.sr-zzp .tooltip-wrapper { position: relative; display: inline-flex; }
+.sr-zzp .tooltip-knop {
+  width: 18px; height: 18px; background: var(--rand); border: none;
+  border-radius: 50%; font-size: 0.72rem; color: var(--tekst-licht);
+  cursor: help; display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; transition: background 0.2s;
+}
+.sr-zzp .tooltip-knop:hover { background: var(--kleur-goud); color: var(--wit); }
+.sr-zzp .tooltip-tekst {
+  position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+  background: var(--tekst-donker); color: var(--wit); font-size: 0.8rem;
+  font-weight: 400; text-transform: none; letter-spacing: 0;
+  padding: 8px 12px; border-radius: var(--straal); width: 230px;
+  line-height: 1.4; pointer-events: none; opacity: 0; transition: opacity 0.2s;
+  z-index: 200; white-space: normal;
+}
+.sr-zzp .tooltip-tekst::after {
+  content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent; border-top-color: var(--tekst-donker);
+}
+.sr-zzp .tooltip-wrapper:hover .tooltip-tekst { opacity: 1; }
+
+/* TOGGLE */
+.sr-zzp .toggle-groep { display: flex; gap: 0; border-radius: var(--straal); overflow: hidden; border: 1.5px solid var(--rand); }
+.sr-zzp .toggle-groep input[type="radio"] { display: none; }
+.sr-zzp .toggle-groep label {
+  flex: 1; padding: 9px 16px; text-align: center; cursor: pointer;
+  font-size: 0.9rem; font-weight: 600; color: var(--tekst-medium);
+  background: var(--wit); transition: background 0.2s, color 0.2s; user-select: none;
+}
+.sr-zzp .toggle-groep input[type="radio"]:checked + label { background: var(--kleur-groen); color: var(--wit); }
+.sr-zzp .toggle-groep.uitgeschakeld { opacity: 0.4; pointer-events: none; }
+
+/* BEREKEN KNOP */
+.sr-zzp .bereken-rij { display: flex; justify-content: center; margin-top: 32px; }
+.sr-zzp .btn-bereken {
+  background: linear-gradient(135deg, var(--kleur-goud) 0%, var(--kleur-goud-donker) 100%);
+  color: var(--wit); border: none; border-radius: 50px; padding: 15px 48px;
+  font-family: inherit; font-size: 1rem; font-weight: 700; letter-spacing: 0.04em;
+  cursor: pointer; box-shadow: 0 4px 16px rgba(197,166,67,0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.sr-zzp .btn-bereken:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(197,166,67,0.45); }
+
+/* RESULTATEN */
+.sr-zzp #sectie-resultaten { display: none; }
+
+.sr-zzp .netto-hero {
+  text-align: center; padding: 32px 20px;
+  background: linear-gradient(135deg, var(--kleur-groen-donker), var(--kleur-groen));
+  border-radius: var(--straal-groot); color: var(--wit);
+}
+.sr-zzp .netto-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; margin-bottom: 8px; }
+.sr-zzp .netto-bedrag { font-family: Georgia, serif; font-size: 3.2rem; color: var(--kleur-goud); font-weight: normal; }
+.sr-zzp .netto-maand { font-size: 1rem; opacity: 0.75; margin-top: 6px; }
+
+.sr-zzp .kpi-rij { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 20px; }
+.sr-zzp .kpi-kaart { background: var(--wit); border-radius: var(--straal-groot); padding: 20px; box-shadow: var(--schaduw); text-align: center; border-top: 3px solid var(--rand); }
+.sr-zzp .kpi-kaart.belasting { border-top-color: #C0392B; }
+.sr-zzp .kpi-kaart.zvw { border-top-color: #2980B9; }
+.sr-zzp .kpi-kaart.netto { border-top-color: var(--kleur-goud); }
+.sr-zzp .kpi-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--tekst-licht); margin-bottom: 6px; }
+.sr-zzp .kpi-waarde { font-family: Georgia, serif; font-size: 1.55rem; color: var(--tekst-donker); }
+.sr-zzp .kpi-pct { font-size: 0.8rem; color: var(--tekst-licht); margin-top: 3px; }
+
+.sr-zzp .grafiek-container { position: relative; height: 260px; max-width: 400px; margin: 0 auto; }
+
+/* BREAKDOWN TABEL */
+.sr-zzp .breakdown-tabel { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+.sr-zzp .breakdown-tabel tr { border-bottom: 1px solid var(--rand); }
+.sr-zzp .breakdown-tabel tr:last-child { border-bottom: none; }
+.sr-zzp .breakdown-tabel td { padding: 9px 4px; color: var(--tekst-medium); }
+.sr-zzp .breakdown-tabel td:last-child { text-align: right; font-weight: 600; color: var(--tekst-donker); }
+.sr-zzp .breakdown-tabel .aftrek td:last-child { color: #27AE60; }
+.sr-zzp .breakdown-tabel .subtotaal td { font-weight: 700; color: var(--tekst-donker); background: var(--achtergrond); border-radius: 4px; }
+.sr-zzp .breakdown-tabel .totaal td { font-size: 1rem; font-weight: 700; color: var(--kleur-groen-donker); border-top: 2px solid var(--kleur-goud); }
+
+/* NOOT / DISCLAIMER */
+.sr-zzp .noot-box { background: #FFF8E6; border: 1.5px solid #F0C040; border-radius: var(--straal); padding: 12px 16px; font-size: 0.83rem; color: #7A5500; margin-top: 16px; line-height: 1.5; }
+.sr-zzp .noot-box strong { display: block; margin-bottom: 4px; }
+.sr-zzp .disclaimer { font-size: 0.78rem; color: var(--tekst-licht); text-align: center; margin-top: 20px; padding: 0 16px; line-height: 1.5; }
+
+/* PDF KNOP */
+.sr-zzp .pdf-rij { display: flex; justify-content: center; }
+.sr-zzp .btn-pdf { background: none; border: 2px solid var(--kleur-goud); color: var(--kleur-goud-donker); border-radius: 50px; padding: 11px 32px; font-family: inherit; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.sr-zzp .btn-pdf:hover { background: var(--kleur-goud); color: var(--wit); }
+
+/* CTA */
+.sr-zzp .cta-blok { background: linear-gradient(135deg, var(--kleur-groen-donker), var(--kleur-groen)); border-radius: var(--straal-groot); padding: 36px 40px; margin-top: 28px; }
+.sr-zzp .cta-inhoud { display: flex; align-items: center; justify-content: space-between; gap: 32px; }
+.sr-zzp .cta-tekst h3 { color: var(--kleur-goud); font-size: 1.3rem; margin-bottom: 8px; }
+.sr-zzp .cta-tekst p { color: rgba(255,255,255,0.8); font-size: 0.95rem; max-width: 480px; }
+.sr-zzp .btn-cta { background: var(--kleur-goud); color: var(--wit); border: none; border-radius: 50px; padding: 13px 28px; font-family: inherit; font-size: 0.95rem; font-weight: 700; cursor: pointer; text-decoration: none; white-space: nowrap; transition: background 0.2s, transform 0.15s; }
+.sr-zzp .btn-cta:hover { background: #e8c050; transform: translateY(-2px); }
+
+/* ANIMATIE */
+@keyframes srFadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.sr-zzp .fade-in { animation: srFadeInUp 0.4s ease both; }
+
+/* RESPONSIVE */
+@media (max-width: 700px) {
+  .sr-zzp .hero { padding: 28px 16px; }
+  .sr-zzp .hero h2 { font-size: 1.3rem; }
+  .sr-zzp .container { padding: 0 16px; }
+  .sr-zzp .kaart { padding: 16px; }
+  .sr-zzp .formulier-grid { grid-template-columns: 1fr; gap: 16px; }
+  .sr-zzp .kpi-rij { grid-template-columns: 1fr; }
+  .sr-zzp .netto-bedrag { font-size: 2.4rem; }
+  .sr-zzp .cta-inhoud { flex-direction: column; gap: 20px; }
+  .sr-zzp .btn-cta { width: 100%; text-align: center; }
+}
+</style>
+
+<!-- ── WRAPPER ─────────────────────────────────────────────── -->
+<div class="sr-zzp">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <h2>Hoeveel houd ik over als ZZP'er?</h2>
+      <p>Bereken wat je netto overhoudt van jouw winst als eenmanszaak, op basis van de belastingtarieven van 2026. De uitkomst is een indicatie. Heb je ook inkomen in box 2 of box 3? Houd er dan rekening mee dat de algemene heffingskorting van je volledige verzamelinkomen afhankelijk is, en dat dit in deze tool niet wordt meegenomen.</p>
+    </div>
+  </section>
+
+  <!-- FORMULIER -->
+  <div class="container">
+    <form id="rekentool-form" novalidate>
+
+      <!-- KAART 1: WINST -->
+      <div class="kaart">
+        <div class="kaart-titel">
+          <div class="icoon">💼</div>
+          <h2>Winst &amp; ondernemersaftrek</h2>
+        </div>
+
+        <div class="veld" style="margin-bottom:24px;">
+          <label class="veld-label" for="winst-slider">
+            Winst uit onderneming
+            <div class="tooltip-wrapper">
+              <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+              <span class="tooltip-tekst">Je bruto winst vóór belasting en aftrekposten. Dit is je omzet minus zakelijke kosten.</span>
+            </div>
+          </label>
+          <div class="slider-wrapper">
+            <div class="slider-rij">
+              <input type="range" id="winst-slider" min="20000" max="300000" step="1000" value="100000">
+              <input type="number" class="slider-invoer" id="winst-invoer" value="100000" min="0" max="9999999">
+              <span style="font-size:0.85rem;color:var(--tekst-licht);">€</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--tekst-licht);padding:0 2px;">
+              <span>€ 20.000</span><span>€ 300.000</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="formulier-grid">
+          <div class="veld">
+            <label class="veld-label">
+              Zelfstandigenaftrek (€ 1.200)
+              <div class="tooltip-wrapper">
+                <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+                <span class="tooltip-tekst">Recht op zelfstandigenaftrek als je minimaal 1.225 uur per jaar aan je onderneming besteedt. In 2026 bedraagt deze € 1.200.</span>
+              </div>
+            </label>
+            <div class="toggle-groep">
+              <input type="radio" name="za" id="za-ja" value="ja" checked>
+              <label for="za-ja">Ja</label>
+              <input type="radio" name="za" id="za-nee" value="nee">
+              <label for="za-nee">Nee</label>
+            </div>
+          </div>
+
+          <div class="veld" id="sa-veld">
+            <label class="veld-label">
+              Startersaftrek (€ 2.123)
+              <div class="tooltip-wrapper">
+                <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+                <span class="tooltip-tekst">Extra aftrek voor starters. Maximaal 3 keer in de eerste 5 jaar. Alleen mogelijk als je ook recht hebt op de zelfstandigenaftrek. In 2026 bedraagt deze € 2.123.</span>
+              </div>
+            </label>
+            <div class="toggle-groep" id="sa-toggle">
+              <input type="radio" name="sa" id="sa-ja" value="ja">
+              <label for="sa-ja">Ja</label>
+              <input type="radio" name="sa" id="sa-nee" value="nee" checked>
+              <label for="sa-nee">Nee</label>
+            </div>
+            <p id="sa-uitgeschakeld-tekst" style="display:none;font-size:0.78rem;color:var(--tekst-licht);margin-top:4px;">
+              Niet mogelijk zonder zelfstandigenaftrek.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- KAART 2: PREMIES -->
+      <div class="kaart">
+        <div class="kaart-titel">
+          <div class="icoon">🛡️</div>
+          <h2>Premies &amp; inkomensvoorzieningen</h2>
+        </div>
+        <div class="formulier-grid">
+          <div class="veld">
+            <label class="veld-label" for="aov">
+              Premie AOV
+              <div class="tooltip-wrapper">
+                <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+                <span class="tooltip-tekst">De jaarlijkse premie voor je Arbeidsongeschiktheidsverzekering. Dit is een aftrekpost in box 1.</span>
+              </div>
+            </label>
+            <div class="veld-eenheid">
+              <input type="number" id="aov" value="0" min="0" max="100000" step="100">
+              <span class="eenheid-label">€</span>
+            </div>
+          </div>
+          <div class="veld">
+            <label class="veld-label" for="lijfrente">
+              Inleg lijfrente / inkomensvoorziening
+              <div class="tooltip-wrapper">
+                <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+                <span class="tooltip-tekst">Fiscaal aftrekbare pensioenpremie op basis van je jaarruimte. Raadpleeg je adviseur voor je persoonlijke maximum.</span>
+              </div>
+            </label>
+            <div class="veld-eenheid">
+              <input type="number" id="lijfrente" value="0" min="0" max="100000" step="100">
+              <span class="eenheid-label">€</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KAART 3: EIGEN WONING -->
+      <div class="kaart">
+        <div class="kaart-titel">
+          <div class="icoon">🏠</div>
+          <h2>Eigen woning <span style="font-size:0.8rem;color:var(--tekst-licht);font-family:'Lato',sans-serif;font-weight:400;">(optioneel)</span></h2>
+        </div>
+        <p style="font-size:0.88rem;color:var(--tekst-medium);margin-bottom:12px;">Laat leeg als je geen eigen woning hebt of deze niet wilt meenemen.</p>
+        <div class="formulier-grid">
+          <div class="veld">
+            <label class="veld-label" for="woz">
+              WOZ-waarde eigen woning
+              <div class="tooltip-wrapper">
+                <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+                <span class="tooltip-tekst">Vul hier de WOZ-waarde in van je eigen woning. Voor belastingjaar 2026 gebruik je de WOZ-waarde met peildatum 1 januari 2025. Je vindt deze op de WOZ-beschikking van je gemeente of via wozwaardeloket.nl.</span>
+              </div>
+            </label>
+            <div class="veld-eenheid">
+              <input type="number" id="woz" value="0" min="0" max="5000000" step="1000">
+              <span class="eenheid-label">€</span>
+            </div>
+          </div>
+          <div class="veld">
+            <label class="veld-label" for="hypotheekrente">
+              Aftrekbare hypotheekrente
+              <div class="tooltip-wrapper">
+                <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+                <span class="tooltip-tekst">De jaarlijkse hypotheekrente die je mag aftrekken in box 1.</span>
+              </div>
+            </label>
+            <div class="veld-eenheid">
+              <input type="number" id="hypotheekrente" value="0" min="0" max="100000" step="100">
+              <span class="eenheid-label">€</span>
+            </div>
+          </div>
+        </div>
+        <div id="ew-preview" style="display:none;margin-top:16px;" class="noot-box">
+          <strong>Eigen woning effect:</strong>
+          <span id="ew-tekst"></span>
+        </div>
+      </div>
+
+      <div class="bereken-rij">
+        <button type="submit" class="btn-bereken">Berekening uitvoeren →</button>
+      </div>
+
+    </form>
+
+    <!-- RESULTATEN -->
+    <section id="sectie-resultaten">
+
+      <div class="kaart fade-in">
+        <div class="netto-hero">
+          <div class="netto-label">Netto jaarinkomen 2026</div>
+          <div class="netto-bedrag" id="res-netto-jaar">–</div>
+          <div class="netto-maand" id="res-netto-maand"></div>
+        </div>
+        <div class="kpi-rij">
+          <div class="kpi-kaart belasting">
+            <div class="kpi-label">Inkomstenbelasting</div>
+            <div class="kpi-waarde" id="res-ib">–</div>
+            <div class="kpi-pct" id="res-ib-pct"></div>
+          </div>
+          <div class="kpi-kaart zvw">
+            <div class="kpi-label">Bijdrage ZVW</div>
+            <div class="kpi-waarde" id="res-zvw">–</div>
+            <div class="kpi-pct" id="res-zvw-pct"></div>
+          </div>
+          <div class="kpi-kaart netto">
+            <div class="kpi-label">Netto overgehouden</div>
+            <div class="kpi-waarde" id="res-netto-pct-groot">–</div>
+            <div class="kpi-pct">van de winst</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="kaart fade-in">
+        <div class="kaart-titel"><div class="icoon">📊</div><h2>Verdeling van je winst</h2></div>
+        <div class="grafiek-container"><canvas id="donut-grafiek"></canvas></div>
+      </div>
+
+      <div class="kaart fade-in">
+        <div class="kaart-titel"><div class="icoon">🧮</div><h2>Gedetailleerde berekening</h2></div>
+        <table class="breakdown-tabel">
+          <tbody>
+            <tr><td>Winst uit onderneming</td><td id="bd-winst">–</td></tr>
+            <tr class="aftrek"><td>− Zelfstandigenaftrek</td><td id="bd-za">–</td></tr>
+            <tr class="aftrek" id="bd-sa-rij"><td>− Startersaftrek</td><td id="bd-sa">–</td></tr>
+            <tr class="aftrek"><td>− MKB-winstvrijstelling (12,7%)</td><td id="bd-mkb">–</td></tr>
+            <tr class="aftrek" id="bd-aov-rij"><td>− Premie AOV</td><td id="bd-aov">–</td></tr>
+            <tr class="aftrek" id="bd-lijfrente-rij"><td>− Lijfrente / inkomensvoorziening</td><td id="bd-lijfrente">–</td></tr>
+            <tr id="bd-ewf-rij"><td id="bd-ewf-label">+ Eigenwoningforfait</td><td id="bd-ewf">–</td></tr>
+            <tr class="aftrek" id="bd-hypo-rij"><td>− Hypotheekrente (betaald)</td><td id="bd-hypo">–</td></tr>
+            <tr id="bd-hrente-rij"><td id="bd-hrente-label">= Netto aftrek eigen woning</td><td id="bd-hrente">–</td></tr>
+            <tr class="subtotaal"><td>= Belastbaar box 1 inkomen</td><td id="bd-belastbaar">–</td></tr>
+            <tr style="border-top:2px solid var(--rand);"><td>Belasting + premies volksverzekeringen</td><td id="bd-belasting">–</td></tr>
+            <tr id="bd-ta-rij"><td>Tariefsaanpassing box 1</td><td id="bd-ta">–</td></tr>
+            <tr class="aftrek"><td>− Algemene heffingskorting</td><td id="bd-ahk">–</td></tr>
+            <tr class="aftrek"><td>− Arbeidskorting</td><td id="bd-ak">–</td></tr>
+            <tr class="subtotaal"><td>= Verschuldigde inkomstenbelasting</td><td id="bd-ib-totaal">–</td></tr>
+            <tr><td id="bd-zvw-label">Bijdrage ZVW (4,85%)</td><td id="bd-zvw">–</td></tr>
+            <tr class="totaal"><td>= Netto jaarinkomen</td><td id="bd-netto">–</td></tr>
+          </tbody>
+        </table>
+        <div class="noot-box" style="margin-top:20px;">
+          <strong>⚠️ Let op: Algemene Heffingskorting</strong>
+          De Algemene Heffingskorting wordt ook beperkt op basis van je <em>verzamelinkomen</em> (box 1 + box 2 + box 3). In deze tool wordt uitsluitend box 1 meegenomen — houd hier rekening mee als je ook box 2 of box 3 inkomen hebt.
+        </div>
+      </div>
+
+      <div class="kaart fade-in">
+        <div class="pdf-rij">
+          <button type="button" class="btn-pdf" id="btn-pdf">🖨 Afdrukken / opslaan als PDF</button>
+        </div>
+      </div>
+
+      <p class="disclaimer">
+        Deze berekening is indicatief op basis van de 2026-tarieven. Werkelijke bedragen kunnen afwijken. Raadpleeg altijd een boekhouder of financieel adviseur voor persoonlijk advies.
+      </p>
+
+      <div class="cta-blok fade-in">
+        <div class="cta-inhoud">
+          <div class="cta-tekst">
+            <h3>Wil je meer grip op je financiën?</h3>
+            <p>Als ZZP'er zijn er slimme keuzes te maken rondom pensioen, belasting en vermogen. In een gratis strategiegesprek kijk ik samen met je naar jouw situatie.</p>
+          </div>
+          <a href="https://studiorendement.com/aanvraag-1-op-1-traject/" target="_blank" class="btn-cta">Plan een gratis strategiegesprek →</a>
+        </div>
+      </div>
+
+    </section>
+  </div><!-- /.container -->
+</div><!-- /.sr-zzp -->
+
+<script>
+(function () {
+
+  const C = {
+    ZA: 1200, SA: 2123, MKB: 0.127,
+    S1_GRENS: 38883, S2_GRENS: 78426,
+    S1_RATE: 0.3575, S2_RATE: 0.3756, S3_RATE: 0.4950,
+    ZVW_RATE: 0.0485, ZVW_MAX: 79409,
+    AHK_MAX: 3115, AHK_GRENS: 29736, AHK_AFBOUW: 0.06398,
+  };
+
+  function euro(n) { return '€ ' + Math.round(n).toLocaleString('nl-NL'); }
+  function pct(n, tot) { return ((n / tot) * 100).toFixed(1) + '%'; }
+
+  function belasting(i) {
+    if (i <= 0) return 0;
+    let b = Math.min(i, C.S1_GRENS) * C.S1_RATE;
+    if (i > C.S1_GRENS) b += (Math.min(i, C.S2_GRENS) - C.S1_GRENS) * C.S2_RATE;
+    if (i > C.S2_GRENS) b += (i - C.S2_GRENS) * C.S3_RATE;
+    return b;
+  }
+
+  function ahk(i) {
+    if (i <= C.AHK_GRENS) return C.AHK_MAX;
+    return Math.max(0, C.AHK_MAX - C.AHK_AFBOUW * (i - C.AHK_GRENS));
+  }
+
+  function arbeidskorting(ai) {
+    if (ai <= 0)       return 0;
+    if (ai <= 11965)   return 0.08324 * ai;
+    if (ai <= 25845)   return 996  + 0.31009 * (ai - 11965);
+    if (ai <= 45592)   return 5300 + 0.01950 * (ai - 25845);
+    if (ai <= 132920)  return 5685 - 0.06510 * (ai - 45592);
+    return 0;
+  }
+
+  function eigenwoningforfait(woz) {
+    if (woz <=    12500) return 0;
+    if (woz <=    25000) return woz * 0.0010;
+    if (woz <=    50000) return woz * 0.0020;
+    if (woz <=    75000) return woz * 0.0025;
+    if (woz <= 1350000)  return woz * 0.0035;
+    return 4725 + (woz - 1350000) * 0.0235;
+  }
+
+  function bereken(p) {
+    const za  = p.za  ? C.ZA : 0;
+    const sa  = p.sa  ? C.SA : 0;
+    const mkb = Math.max(0, p.winst - za - sa) * C.MKB;
+    const ewf = eigenwoningforfait(p.woz);
+    const netto_ew = p.hypotheekrente - ewf;
+    const belastbaar = Math.max(0, p.winst - za - sa - mkb - p.aov - p.lijfrente - netto_ew);
+    const ib_basis = belasting(belastbaar);
+    const aftrekken = za + sa + mkb;
+    const basis_ta = p.winst - p.aov - p.lijfrente;
+    const aftrek_s3 = Math.min(aftrekken, Math.max(0, basis_ta - C.S2_GRENS));
+    const ta = aftrek_s3 * (C.S3_RATE - C.S2_RATE);
+    const ahk_val = ahk(belastbaar);
+    const ak_val  = arbeidskorting(p.winst);
+    const ib_totaal = Math.max(0, ib_basis + ta - ahk_val - ak_val);
+    const zvw_grondslag = Math.min(Math.max(0, p.winst - za - sa - mkb), C.ZVW_MAX);
+    const zvw = zvw_grondslag * C.ZVW_RATE;
+    const netto = p.winst - ib_totaal - zvw - p.aov - p.lijfrente;
+    return { winst: p.winst, za, sa, mkb, ewf, ewf_woz: p.woz, netto_ew,
+             aov: p.aov, lijfrente: p.lijfrente,
+             zvw_grondslag, belastbaar, ib_basis, ta, ahk_val, ak_val,
+             ib_totaal, zvw, netto };
+  }
+
+  let grafiek = null;
+  function toonGrafiek(r) {
+    const ctx = document.getElementById('donut-grafiek').getContext('2d');
+    if (grafiek) grafiek.destroy();
+    const labels = ['Netto inkomen', 'Inkomstenbelasting', 'ZVW bijdrage'];
+    const data   = [Math.max(0, r.netto), r.ib_totaal, r.zvw];
+    const colors = ['#C5A643', '#C0392B', '#2980B9'];
+    if (r.aov > 0)       { labels.push('AOV premie');           data.push(r.aov);       colors.push('#7F8C8D'); }
+    if (r.lijfrente > 0) { labels.push('Lijfrente / pensioen'); data.push(r.lijfrente); colors.push('#95A5A6'); }
+    grafiek = new Chart(ctx, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 3, borderColor: '#fff', hoverOffset: 8 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '62%',
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { family: 'Lato, sans-serif', size: 13 }, padding: 20, usePointStyle: true } },
+          tooltip: { callbacks: { label: c => ' ' + c.label + ': ' + euro(c.parsed) } }
+        }
+      }
+    });
+  }
+
+  function set(id, val) { document.getElementById(id).textContent = val; }
+
+  function toonResultaten(r) {
+    const w = r.winst;
+    set('res-netto-jaar',      euro(r.netto));
+    set('res-netto-maand',     euro(r.netto / 12) + ' per maand');
+    set('res-ib',              euro(r.ib_totaal));
+    set('res-ib-pct',          pct(r.ib_totaal, w) + ' van winst');
+    set('res-zvw',             euro(r.zvw));
+    set('res-zvw-pct',         pct(r.zvw, w) + ' van winst');
+    set('res-netto-pct-groot', pct(Math.max(0, r.netto), w));
+    set('bd-winst',    euro(w));
+    set('bd-za',       r.za > 0 ? euro(r.za) : '–');
+    set('bd-sa',       r.sa > 0 ? euro(r.sa) : '–');
+    set('bd-mkb',      euro(r.mkb));
+    document.getElementById('bd-sa-rij').style.display       = r.sa > 0 ? '' : 'none';
+    set('bd-aov',      r.aov > 0 ? euro(r.aov) : '–');
+    document.getElementById('bd-aov-rij').style.display      = r.aov > 0 ? '' : 'none';
+    set('bd-lijfrente', r.lijfrente > 0 ? euro(r.lijfrente) : '–');
+    document.getElementById('bd-lijfrente-rij').style.display = r.lijfrente > 0 ? '' : 'none';
+
+    const ewf_show = r.ewf > 0;
+    document.getElementById('bd-ewf-rij').style.display = ewf_show ? '' : 'none';
+    if (ewf_show) {
+      const woz = r.ewf_woz || 0;
+      const ep  = woz <= 25000 ? '0,10%' : woz <= 50000 ? '0,20%' : woz <= 75000 ? '0,25%' : woz <= 1350000 ? '0,35%' : '2,35%';
+      document.getElementById('bd-ewf-label').textContent = `+ Eigenwoningforfait (${ep})`;
+      set('bd-ewf', euro(r.ewf));
+    }
+    const hypo     = r.hypotheekrente_val || 0;
+    const netto_ew = hypo - r.ewf;
+    document.getElementById('bd-hypo-rij').style.display   = hypo > 0 ? '' : 'none';
+    if (hypo > 0) set('bd-hypo', euro(hypo));
+    const netto_rij_show = r.ewf > 0 && hypo > 0;
+    document.getElementById('bd-hrente-rij').style.display = netto_rij_show ? '' : 'none';
+    if (netto_rij_show) {
+      const lbl = document.getElementById('bd-hrente-label');
+      if (netto_ew > 0) { lbl.textContent = '= Netto aftrek eigen woning'; document.getElementById('bd-hrente-rij').className = 'aftrek'; set('bd-hrente', euro(netto_ew)); }
+      else              { lbl.textContent = '= Netto bijtelling eigen woning'; document.getElementById('bd-hrente-rij').className = ''; set('bd-hrente', euro(-netto_ew)); }
+    }
+    set('bd-belastbaar', euro(r.belastbaar));
+    set('bd-belasting',  euro(r.ib_basis));
+    document.getElementById('bd-ta-rij').style.display = r.ta > 0 ? '' : 'none';
+    set('bd-ta',         r.ta > 0 ? euro(r.ta) : '–');
+    set('bd-ahk',        euro(r.ahk_val));
+    set('bd-ak',         euro(r.ak_val));
+    set('bd-ib-totaal',  euro(r.ib_totaal));
+    document.getElementById('bd-zvw-label').textContent = `Bijdrage ZVW (4,85% over maximaal ${euro(C.ZVW_MAX)})`;
+    set('bd-zvw',        euro(r.zvw));
+    set('bd-netto',      euro(r.netto));
+    toonGrafiek(r);
+    const sectie = document.getElementById('sectie-resultaten');
+    sectie.style.display = 'block';
+    setTimeout(() => sectie.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }
+
+  function updateEWPreview() {
+    const woz  = parseFloat(document.getElementById('woz').value) || 0;
+    const hr   = parseFloat(document.getElementById('hypotheekrente').value) || 0;
+    const ewf  = eigenwoningforfait(woz);
+    const prev = document.getElementById('ew-preview');
+    const txt  = document.getElementById('ew-tekst');
+    if (woz === 0 && hr === 0) { prev.style.display = 'none'; return; }
+    prev.style.display = 'block';
+    if (ewf === 0 && hr === 0) { txt.textContent = 'Geen effect (WOZ onder drempel).'; return; }
+    const n = hr - ewf;
+    if (n > 0)      txt.textContent = `Eigenwoningforfait ${euro(ewf)} · Hypotheekrenteaftrek ${euro(hr)} · Netto aftrek ${euro(n)} ↓ belastbaar inkomen`;
+    else if (n < 0) txt.textContent = `Eigenwoningforfait ${euro(ewf)} · Hypotheekrenteaftrek ${euro(hr)} · Per saldo bijtelling ${euro(-n)} ↑ belastbaar inkomen`;
+    else            txt.textContent = `Eigenwoningforfait en hypotheekrente heffen elkaar op.`;
+  }
+
+  function updateSaStatus() {
+    const zaJa   = document.getElementById('za-ja').checked;
+    const toggle = document.getElementById('sa-toggle');
+    const tekst  = document.getElementById('sa-uitgeschakeld-tekst');
+    if (zaJa) {
+      toggle.classList.remove('uitgeschakeld'); tekst.style.display = 'none';
+    } else {
+      document.getElementById('sa-ja').checked  = false;
+      document.getElementById('sa-nee').checked = true;
+      toggle.classList.add('uitgeschakeld'); tekst.style.display = 'block';
+    }
+  }
+
+  document.querySelectorAll('input[name="za"]').forEach(r => r.addEventListener('change', updateSaStatus));
+  updateSaStatus();
+
+  const slider = document.getElementById('winst-slider');
+  const invoer = document.getElementById('winst-invoer');
+  slider.addEventListener('input', () => { invoer.value = slider.value; });
+  invoer.addEventListener('input', () => { slider.value = Math.max(20000, Math.min(300000, parseInt(invoer.value) || 20000)); });
+
+  document.getElementById('woz').addEventListener('input', updateEWPreview);
+  document.getElementById('hypotheekrente').addEventListener('input', updateEWPreview);
+
+  document.getElementById('rekentool-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const r = bereken({
+      winst:       parseFloat(invoer.value) || 0,
+      za:          document.querySelector('input[name="za"]:checked').value === 'ja',
+      sa:          document.querySelector('input[name="sa"]:checked').value === 'ja',
+      aov:         parseFloat(document.getElementById('aov').value) || 0,
+      lijfrente:   parseFloat(document.getElementById('lijfrente').value) || 0,
+      woz:         parseFloat(document.getElementById('woz').value) || 0,
+      hypotheekrente: parseFloat(document.getElementById('hypotheekrente').value) || 0,
+    });
+    r.hypotheekrente_val = parseFloat(document.getElementById('hypotheekrente').value) || 0;
+    toonResultaten(r);
+  });
+
+  document.getElementById('btn-pdf').addEventListener('click', function () {
+    window.print();
+  });
+
+})();
+</script>

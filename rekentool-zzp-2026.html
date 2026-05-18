@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rekentool ZZP 2026 – Studio Rendement</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    :root {
+      --kleur-goud:         #C5A643;
+      --kleur-goud-donker:  #A08830;
+      --kleur-goud-licht:   #F2E9C8;
+      --kleur-groen:        #09302A;
+      --kleur-groen-donker: #0C1915;
+      --kleur-groen-licht:  #D2DFD8;
+      --achtergrond:        #F9F7F4;
+      --wit:                #FFFFFF;
+      --tekst-donker:       #1A1A1A;
+      --tekst-medium:       #4A4A4A;
+      --tekst-licht:        #7A7570;
+      --rand:               #E8E2D9;
+      --rand-focus:         var(--kleur-goud);
+      --schaduw:            0 2px 12px rgba(0,0,0,0.08);
+      --schaduw-hover:      0 4px 20px rgba(0,0,0,0.13);
+      --straal:             8px;
+      --straal-groot:       14px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Lato', Georgia, sans-serif; background: var(--achtergrond); color: var(--tekst-donker); line-height: 1.6; min-height: 100vh; }
+    h1, h2, h3 { font-family: Georgia, serif; font-weight: normal; line-height: 1.3; }
+
+    /* HEADER */
+    .site-header {
+      background: var(--kleur-groen-donker);
+      border-bottom: 3px solid var(--kleur-goud);
+      padding: 18px 40px;
+      display: flex; align-items: center; gap: 20px;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.30);
+    }
+    .site-header img.logo { height: 48px; width: auto; }
+    .header-tekst h1 { font-size: 1.45rem; color: var(--kleur-goud); }
+    .header-tekst p { font-size: 0.85rem; color: rgba(255,255,255,0.55); margin-top: 2px; }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, var(--kleur-groen-donker) 0%, var(--kleur-groen) 100%);
+      color: var(--wit); padding: 56px 40px 48px; text-align: center;
+    }
+    .hero h2 { font-size: 2rem; color: var(--wit); margin-bottom: 12px; }
+    .hero p { font-size: 1.05rem; opacity: 0.88; max-width: 620px; margin: 0 auto; }
+
+    /* LAYOUT */
+    .container { max-width: 100%; margin: 0; padding: 0 40px; }
+
+    /* KAART */
+    .kaart {
+      background: var(--wit); border-radius: var(--straal-groot);
+      box-shadow: var(--schaduw); padding: 32px; margin-top: 28px;
+    }
+    .kaart-titel {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 24px; padding-bottom: 16px;
+      border-bottom: 2px solid var(--kleur-goud-licht);
+    }
+    .kaart-titel h2 { font-size: 1.25rem; color: var(--tekst-donker); }
+    .kaart-titel .icoon {
+      width: 36px; height: 36px; background: var(--kleur-goud-licht);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+    }
+
+    /* FORMULIER */
+    .formulier-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 32px; }
+    .formulier-grid.enkelvoud { grid-template-columns: 1fr; }
+    .veld { display: flex; flex-direction: column; gap: 6px; }
+    .veld-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.88rem; font-weight: 600; color: var(--tekst-medium);
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .veld input[type="number"] {
+      border: 1.5px solid var(--rand); border-radius: var(--straal);
+      padding: 10px 14px; font-family: inherit; font-size: 0.97rem;
+      color: var(--tekst-donker); background: var(--wit);
+      transition: border-color 0.2s, box-shadow 0.2s; width: 100%;
+    }
+    .veld input:focus {
+      outline: none; border-color: var(--rand-focus);
+      box-shadow: 0 0 0 3px rgba(197,166,67,0.15);
+    }
+    .veld-eenheid { position: relative; }
+    .veld-eenheid input { padding-right: 44px; }
+    .eenheid-label {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      font-size: 0.85rem; color: var(--tekst-licht); pointer-events: none;
+    }
+
+    /* RANGE SLIDER */
+    .slider-wrapper { display: flex; flex-direction: column; gap: 8px; }
+    .slider-rij { display: flex; align-items: center; gap: 12px; }
+    input[type="range"] {
+      flex: 1; -webkit-appearance: none; height: 6px;
+      background: var(--kleur-goud-licht); border-radius: 3px; outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%;
+      background: var(--kleur-goud); cursor: pointer;
+      box-shadow: 0 2px 6px rgba(197,166,67,0.4);
+    }
+    .slider-invoer {
+      width: 110px; border: 1.5px solid var(--rand); border-radius: var(--straal);
+      padding: 8px 12px; font-family: inherit; font-size: 0.97rem;
+      color: var(--tekst-donker); text-align: right;
+    }
+    .slider-invoer:focus {
+      outline: none; border-color: var(--rand-focus);
+      box-shadow: 0 0 0 3px rgba(197,166,67,0.15);
+    }
+
+    /* TOOLTIP */
+    .tooltip-wrapper { position: relative; display: inline-flex; }
+    .tooltip-knop {
+      width: 18px; height: 18px; background: var(--rand); border: none;
+      border-radius: 50%; font-size: 0.72rem; color: var(--tekst-licht);
+      cursor: help; display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 700; transition: background 0.2s;
+    }
+    .tooltip-knop:hover { background: var(--kleur-goud); color: var(--wit); }
+    .tooltip-tekst {
+      position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+      background: var(--tekst-donker); color: var(--wit); font-size: 0.8rem;
+      font-weight: 400; text-transform: none; letter-spacing: 0;
+      padding: 8px 12px; border-radius: var(--straal); width: 230px;
+      line-height: 1.4; pointer-events: none; opacity: 0; transition: opacity 0.2s;
+      z-index: 200; white-space: normal;
+    }
+    .tooltip-tekst::after {
+      content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+      border: 5px solid transparent; border-top-color: var(--tekst-donker);
+    }
+    .tooltip-wrapper:hover .tooltip-tekst { opacity: 1; }
+
+    /* TOGGLE */
+    .toggle-groep { display: flex; gap: 0; border-radius: var(--straal); overflow: hidden; border: 1.5px solid var(--rand); }
+    .toggle-groep input[type="radio"] { display: none; }
+    .toggle-groep label {
+      flex: 1; padding: 9px 16px; text-align: center; cursor: pointer;
+      font-size: 0.9rem; font-weight: 600; color: var(--tekst-medium);
+      background: var(--wit); transition: background 0.2s, color 0.2s;
+      user-select: none;
+    }
+    .toggle-groep input[type="radio"]:checked + label {
+      background: var(--kleur-groen); color: var(--wit);
+    }
+
+    /* Disabled toggle (startersaftrek als geen ZA) */
+    .toggle-groep.uitgeschakeld { opacity: 0.4; pointer-events: none; }
+    #sa-veld.uitgeschakeld label.veld-label { color: var(--tekst-licht); }
+
+    /* INKLAPBAAR EIGEN WONING */
+    .inklapbaar-header {
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; padding: 14px 0; border-top: 1px solid var(--rand); margin-top: 8px;
+      user-select: none;
+    }
+    .inklapbaar-header:hover .inklapbaar-label { color: var(--kleur-goud-donker); }
+    .inklapbaar-label { font-size: 0.88rem; font-weight: 700; color: var(--tekst-medium); text-transform: uppercase; letter-spacing: 0.05em; }
+    .inklapbaar-pijl { font-size: 0.85rem; color: var(--tekst-licht); transition: transform 0.2s; }
+    .inklapbaar-pijl.open { transform: rotate(180deg); }
+    .inklapbaar-inhoud { display: none; padding-top: 16px; }
+    .inklapbaar-inhoud.zichtbaar { display: block; }
+
+    /* BEREKEN KNOP */
+    .bereken-rij { display: flex; justify-content: center; margin-top: 32px; }
+    .btn-bereken {
+      background: linear-gradient(135deg, var(--kleur-goud) 0%, var(--kleur-goud-donker) 100%);
+      color: var(--wit); border: none; border-radius: 50px; padding: 15px 48px;
+      font-family: inherit; font-size: 1rem; font-weight: 700; letter-spacing: 0.04em;
+      cursor: pointer; box-shadow: 0 4px 16px rgba(197,166,67,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-bereken:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(197,166,67,0.45); }
+
+    /* RESULTATEN */
+    #sectie-resultaten { display: none; }
+
+    .netto-hero {
+      text-align: center; padding: 32px 20px; background: linear-gradient(135deg, var(--kleur-groen-donker), var(--kleur-groen));
+      border-radius: var(--straal-groot); color: var(--wit); margin-bottom: 0;
+    }
+    .netto-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; margin-bottom: 8px; }
+    .netto-bedrag { font-family: Georgia, serif; font-size: 3.2rem; color: var(--kleur-goud); font-weight: normal; }
+    .netto-maand { font-size: 1rem; opacity: 0.75; margin-top: 6px; }
+
+    .kpi-rij { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 20px; }
+    .kpi-kaart {
+      background: var(--wit); border-radius: var(--straal-groot); padding: 20px;
+      box-shadow: var(--schaduw); text-align: center; border-top: 3px solid var(--rand);
+    }
+    .kpi-kaart.belasting { border-top-color: #C0392B; }
+    .kpi-kaart.zvw { border-top-color: #2980B9; }
+    .kpi-kaart.netto { border-top-color: var(--kleur-goud); }
+    .kpi-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--tekst-licht); margin-bottom: 6px; }
+    .kpi-waarde { font-family: Georgia, serif; font-size: 1.55rem; color: var(--tekst-donker); }
+    .kpi-pct { font-size: 0.8rem; color: var(--tekst-licht); margin-top: 3px; }
+
+    /* DONUT GRAFIEK */
+    .grafiek-container { position: relative; height: 260px; max-width: 400px; margin: 0 auto; }
+
+    /* BREAKDOWN TABEL */
+    .breakdown-tabel { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    .breakdown-tabel tr { border-bottom: 1px solid var(--rand); }
+    .breakdown-tabel tr:last-child { border-bottom: none; }
+    .breakdown-tabel td { padding: 9px 4px; color: var(--tekst-medium); }
+    .breakdown-tabel td:last-child { text-align: right; font-weight: 600; color: var(--tekst-donker); }
+    .breakdown-tabel .aftrek td:last-child { color: #27AE60; }
+    .breakdown-tabel .subtotaal td { font-weight: 700; color: var(--tekst-donker); background: var(--achtergrond); border-radius: 4px; }
+    .breakdown-tabel .totaal td { font-size: 1rem; font-weight: 700; color: var(--kleur-groen-donker); border-top: 2px solid var(--kleur-goud); }
+
+    /* DISCLAIMER NOOT */
+    .noot-box {
+      background: #FFF8E6; border: 1.5px solid #F0C040; border-radius: var(--straal);
+      padding: 12px 16px; font-size: 0.83rem; color: #7A5500; margin-top: 16px; line-height: 1.5;
+    }
+    .noot-box strong { display: block; margin-bottom: 4px; }
+
+    /* PDF / CTA */
+    .pdf-rij { display: flex; justify-content: center; }
+    .btn-pdf {
+      background: none; border: 2px solid var(--kleur-goud); color: var(--kleur-goud-donker);
+      border-radius: 50px; padding: 11px 32px; font-family: inherit; font-size: 0.95rem;
+      font-weight: 700; cursor: pointer; transition: background 0.2s, color 0.2s;
+    }
+    .btn-pdf:hover { background: var(--kleur-goud); color: var(--wit); }
+
+    .cta-blok {
+      background: linear-gradient(135deg, var(--kleur-groen-donker), var(--kleur-groen));
+      border-radius: var(--straal-groot); padding: 36px 40px; margin-top: 28px;
+    }
+    .cta-inhoud { display: flex; align-items: center; justify-content: space-between; gap: 32px; }
+    .cta-tekst h3 { color: var(--kleur-goud); font-size: 1.3rem; margin-bottom: 8px; }
+    .cta-tekst p { color: rgba(255,255,255,0.8); font-size: 0.95rem; max-width: 480px; }
+    .btn-cta {
+      background: var(--kleur-goud); color: var(--wit); border: none; border-radius: 50px;
+      padding: 13px 28px; font-family: inherit; font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; text-decoration: none; white-space: nowrap;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-cta:hover { background: #e8c050; transform: translateY(-2px); }
+
+    /* DISCLAIMER */
+    .disclaimer { font-size: 0.78rem; color: var(--tekst-licht); text-align: center; margin-top: 20px; padding: 0 16px; line-height: 1.5; }
+
+    /* FOOTER */
+    .site-footer {
+      margin-top: 56px; background: var(--kleur-groen-donker);
+      color: rgba(255,255,255,0.6); text-align: center; padding: 28px 20px; font-size: 0.82rem;
+    }
+    .site-footer a { color: var(--kleur-goud); text-decoration: none; }
+    .site-footer a:hover { text-decoration: underline; }
+
+    /* ANIMATIE */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeInUp 0.4s ease both; }
+
+    /* RESPONSIVE */
+    @media (max-width: 700px) {
+      .site-header { padding: 12px 16px; gap: 12px; }
+      .site-header img.logo { height: 36px; }
+      .header-tekst h1 { font-size: 1rem; }
+      .hero { padding: 28px 16px; }
+      .hero h2 { font-size: 1.3rem; }
+      .kaart { padding: 16px; }
+      .formulier-grid { grid-template-columns: 1fr; gap: 16px; }
+      .kpi-rij { grid-template-columns: 1fr; }
+      .netto-bedrag { font-size: 2.4rem; }
+      .cta-inhoud { flex-direction: column; gap: 20px; }
+      .btn-cta { width: 100%; text-align: center; }
+    }
+
+    @media print {
+      .site-header, .hero, #rekentool-form, .btn-pdf, .cta-blok, .disclaimer { display: none !important; }
+      #sectie-resultaten { display: block !important; }
+      .kaart { box-shadow: none; border: 1px solid #ddd; margin-top: 12px; break-inside: avoid; padding: 16px; }
+      .netto-hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .kpi-kaart { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { background: white; }
+      .container { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <img class="logo" src="data:image/png;base64,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" alt="Studio Rendement">
+  <div class="header-tekst">
+    <h1>Rekentool ZZP 2026</h1>
+    <p>Hoeveel houd ik netto over als zelfstandige?</p>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <h2>Hoeveel houd ik over als ZZP'er?</h2>
+    <p>Bereken wat je netto overhoudt van jouw winst als eenmanszaak, op basis van de belastingtarieven van 2026. De uitkomst is een indicatie. Heb je ook inkomen in box 2 of box 3? Houd er dan rekening mee dat de algemene heffingskorting van je volledige verzamelinkomen afhankelijk is, en dat dit in deze tool niet wordt meegenomen.</p>
+  </div>
+</section>
+
+<!-- FORMULIER -->
+<main class="container">
+  <form id="rekentool-form" novalidate>
+
+    <!-- KAART 1: WINST -->
+    <div class="kaart">
+      <div class="kaart-titel">
+        <div class="icoon">💼</div>
+        <h2>Winst &amp; ondernemersaftrek</h2>
+      </div>
+
+      <!-- Winst slider -->
+      <div class="veld" style="margin-bottom:24px;">
+        <label class="veld-label" for="winst-slider">
+          Winst uit onderneming
+          <div class="tooltip-wrapper">
+            <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+            <span class="tooltip-tekst">Je bruto winst vóór belasting en aftrekposten. Dit is je omzet minus zakelijke kosten.</span>
+          </div>
+        </label>
+        <div class="slider-wrapper">
+          <div class="slider-rij">
+            <input type="range" id="winst-slider" min="20000" max="300000" step="1000" value="100000">
+            <input type="text" inputmode="numeric" class="slider-invoer" id="winst-invoer" value="100.000">
+            <span style="font-size:0.85rem;color:var(--tekst-licht);">€</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--tekst-licht);padding:0 2px;">
+            <span>€ 20.000</span><span>€ 300.000</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="formulier-grid">
+        <div class="veld">
+          <label class="veld-label">
+            Zelfstandigenaftrek (€ 1.200)
+            <div class="tooltip-wrapper">
+              <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+              <span class="tooltip-tekst">Recht op zelfstandigenaftrek als je minimaal 1.225 uur per jaar aan je onderneming besteedt. In 2026 bedraagt deze € 1.200.</span>
+            </div>
+          </label>
+          <div class="toggle-groep">
+            <input type="radio" name="za" id="za-ja" value="ja" checked>
+            <label for="za-ja">Ja</label>
+            <input type="radio" name="za" id="za-nee" value="nee">
+            <label for="za-nee">Nee</label>
+          </div>
+        </div>
+
+        <div class="veld" id="sa-veld">
+          <label class="veld-label">
+            Startersaftrek (€ 2.123)
+            <div class="tooltip-wrapper">
+              <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+              <span class="tooltip-tekst">Extra aftrek voor starters. Maximaal 3 keer in de eerste 5 jaar. Alleen mogelijk als je ook recht hebt op de zelfstandigenaftrek. In 2026 bedraagt deze € 2.123.</span>
+            </div>
+          </label>
+          <div class="toggle-groep" id="sa-toggle">
+            <input type="radio" name="sa" id="sa-ja" value="ja">
+            <label for="sa-ja">Ja</label>
+            <input type="radio" name="sa" id="sa-nee" value="nee" checked>
+            <label for="sa-nee">Nee</label>
+          </div>
+          <p id="sa-uitgeschakeld-tekst" style="display:none;font-size:0.78rem;color:var(--tekst-licht);margin-top:4px;">
+            Niet mogelijk zonder zelfstandigenaftrek.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- KAART 2: PREMIES -->
+    <div class="kaart">
+      <div class="kaart-titel">
+        <div class="icoon">🛡️</div>
+        <h2>Premies &amp; inkomensvoorzieningen</h2>
+      </div>
+      <div class="formulier-grid">
+        <div class="veld">
+          <label class="veld-label" for="aov">
+            Premie AOV
+            <div class="tooltip-wrapper">
+              <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+              <span class="tooltip-tekst">De jaarlijkse premie voor je Arbeidsongeschiktheidsverzekering. Dit is een aftrekpost in box 1.</span>
+            </div>
+          </label>
+          <div class="veld-eenheid">
+            <input type="number" id="aov" value="0" min="0" max="100000" step="100">
+            <span class="eenheid-label">€</span>
+          </div>
+        </div>
+
+        <div class="veld">
+          <label class="veld-label" for="lijfrente">
+            Inleg lijfrente / inkomensvoorziening
+            <div class="tooltip-wrapper">
+              <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+              <span class="tooltip-tekst">Fiscaal aftrekbare pensioenpremie op basis van je jaarruimte. Raadpleeg je adviseur voor je persoonlijke maximum.</span>
+            </div>
+          </label>
+          <div class="veld-eenheid">
+            <input type="number" id="lijfrente" value="0" min="0" max="100000" step="100">
+            <span class="eenheid-label">€</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KAART 3: EIGEN WONING (inklapbaar) -->
+    <div class="kaart">
+      <div class="kaart-titel">
+        <div class="icoon">🏠</div>
+        <h2>Eigen woning <span style="font-size:0.8rem;color:var(--tekst-licht);font-family:'Lato',sans-serif;font-weight:400;">(optioneel)</span></h2>
+      </div>
+      <p style="font-size:0.88rem;color:var(--tekst-medium);margin-bottom:12px;">Laat leeg als je geen eigen woning hebt of deze niet wilt meenemen.</p>
+
+      <div class="formulier-grid">
+        <div class="veld">
+          <label class="veld-label" for="woz">
+            WOZ-waarde eigen woning
+            <div class="tooltip-wrapper">
+              <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+              <span class="tooltip-tekst">Vul hier de WOZ-waarde in van je eigen woning. Voor belastingjaar 2026 gebruik je de WOZ-waarde met peildatum 1 januari 2025. Je vindt deze op de WOZ-beschikking van je gemeente of via wozwaardeloket.nl.</span>
+            </div>
+          </label>
+          <div class="veld-eenheid">
+            <input type="number" id="woz" value="0" min="0" max="5000000" step="1000">
+            <span class="eenheid-label">€</span>
+          </div>
+        </div>
+
+        <div class="veld">
+          <label class="veld-label" for="hypotheekrente">
+            Aftrekbare hypotheekrente
+            <div class="tooltip-wrapper">
+              <button type="button" class="tooltip-knop" tabindex="-1">i</button>
+              <span class="tooltip-tekst">De jaarlijkse hypotheekrente die je mag aftrekken in box 1.</span>
+            </div>
+          </label>
+          <div class="veld-eenheid">
+            <input type="number" id="hypotheekrente" value="0" min="0" max="100000" step="100">
+            <span class="eenheid-label">€</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="ew-preview" style="display:none;margin-top:16px;" class="noot-box">
+        <strong>Eigen woning effect:</strong>
+        <span id="ew-tekst"></span>
+      </div>
+    </div>
+
+    <!-- BEREKEN -->
+    <div class="bereken-rij">
+      <button type="submit" class="btn-bereken">Berekening uitvoeren →</button>
+    </div>
+
+  </form>
+
+  <!-- RESULTATEN -->
+  <section id="sectie-resultaten">
+
+    <!-- Netto hero -->
+    <div class="kaart fade-in">
+      <div class="netto-hero">
+        <div class="netto-label">Netto jaarinkomen 2026</div>
+        <div class="netto-bedrag" id="res-netto-jaar">–</div>
+        <div class="netto-maand" id="res-netto-maand"></div>
+      </div>
+
+      <div class="kpi-rij">
+        <div class="kpi-kaart belasting">
+          <div class="kpi-label">Inkomstenbelasting</div>
+          <div class="kpi-waarde" id="res-ib">–</div>
+          <div class="kpi-pct" id="res-ib-pct"></div>
+        </div>
+        <div class="kpi-kaart zvw">
+          <div class="kpi-label">Bijdrage ZVW</div>
+          <div class="kpi-waarde" id="res-zvw">–</div>
+          <div class="kpi-pct" id="res-zvw-pct"></div>
+        </div>
+        <div class="kpi-kaart netto">
+          <div class="kpi-label">Netto overgehouden</div>
+          <div class="kpi-waarde" id="res-netto-pct-groot">–</div>
+          <div class="kpi-pct">van de winst</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grafiek -->
+    <div class="kaart fade-in">
+      <div class="kaart-titel">
+        <div class="icoon">📊</div>
+        <h2>Verdeling van je winst</h2>
+      </div>
+      <div class="grafiek-container">
+        <canvas id="donut-grafiek"></canvas>
+      </div>
+    </div>
+
+    <!-- Breakdown -->
+    <div class="kaart fade-in">
+      <div class="kaart-titel">
+        <div class="icoon">🧮</div>
+        <h2>Gedetailleerde berekening</h2>
+      </div>
+
+      <table class="breakdown-tabel">
+        <tbody>
+          <tr><td>Winst uit onderneming</td><td id="bd-winst">–</td></tr>
+          <tr class="aftrek"><td id="bd-za-label">− Zelfstandigenaftrek</td><td id="bd-za">–</td></tr>
+          <tr class="aftrek" id="bd-sa-rij"><td>− Startersaftrek</td><td id="bd-sa">–</td></tr>
+          <tr class="aftrek"><td id="bd-mkb-label">− MKB-winstvrijstelling (12,7%)</td><td id="bd-mkb">–</td></tr>
+          <tr class="aftrek" id="bd-aov-rij"><td>− Premie AOV</td><td id="bd-aov">–</td></tr>
+          <tr class="aftrek" id="bd-lijfrente-rij"><td>− Lijfrente / inkomensvoorziening</td><td id="bd-lijfrente">–</td></tr>
+          <tr id="bd-ewf-rij"><td id="bd-ewf-label">+ Eigenwoningforfait</td><td id="bd-ewf">–</td></tr>
+          <tr class="aftrek" id="bd-hypo-rij"><td>− Hypotheekrente (betaald)</td><td id="bd-hypo">–</td></tr>
+          <tr id="bd-hrente-rij"><td id="bd-hrente-label">= Netto aftrek eigen woning</td><td id="bd-hrente">–</td></tr>
+          <tr class="subtotaal"><td>= Belastbaar box 1 inkomen</td><td id="bd-belastbaar">–</td></tr>
+
+          <tr style="border-top:2px solid var(--rand);"><td>Belasting + premies volksverzekeringen</td><td id="bd-belasting">–</td></tr>
+          <tr id="bd-ta-rij"><td>Tariefsaanpassing box 1</td><td id="bd-ta">–</td></tr>
+          <tr class="aftrek"><td>− Algemene heffingskorting</td><td id="bd-ahk">–</td></tr>
+          <tr class="aftrek"><td>− Arbeidskorting</td><td id="bd-ak">–</td></tr>
+          <tr class="subtotaal"><td>= Verschuldigde inkomstenbelasting</td><td id="bd-ib-totaal">–</td></tr>
+
+          <tr><td id="bd-zvw-label">Bijdrage ZVW (4,85%)</td><td id="bd-zvw">–</td></tr>
+          <tr class="totaal"><td>= Netto jaarinkomen</td><td id="bd-netto">–</td></tr>
+        </tbody>
+      </table>
+
+      <div class="noot-box" style="margin-top:20px;">
+        <strong>⚠️ Let op: Algemene Heffingskorting</strong>
+        De Algemene Heffingskorting wordt ook beperkt op basis van je <em>verzamelinkomen</em> (box 1 + box 2 + box 3). In deze tool wordt uitsluitend box 1 meegenomen — houd hier rekening mee als je ook box 2 of box 3 inkomen hebt.
+      </div>
+    </div>
+
+    <!-- PDF -->
+    <div class="kaart fade-in">
+      <div class="pdf-rij">
+        <button type="button" class="btn-pdf" id="btn-pdf">🖨 Afdrukken / opslaan als PDF</button>
+      </div>
+    </div>
+
+    <p class="disclaimer">
+      Deze berekening is indicatief op basis van de 2026-tarieven. Werkelijke bedragen kunnen afwijken. Raadpleeg altijd een boekhouder of financieel adviseur voor persoonlijk advies.
+    </p>
+
+    <!-- CTA -->
+    <div class="cta-blok fade-in">
+      <div class="cta-inhoud">
+        <div class="cta-tekst">
+          <h3>Wil je meer grip op je financiën?</h3>
+          <p>Als ZZP'er zijn er slimme keuzes te maken rondom pensioen, belasting en vermogen. In een gratis strategiegesprek kijk ik samen met je naar jouw situatie.</p>
+        </div>
+        <a href="https://studiorendement.com/aanvraag-1-op-1-traject/" target="_blank" class="btn-cta">Plan een gratis strategiegesprek →</a>
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <p>© 2026 Studio Rendement &nbsp;·&nbsp; <a href="https://www.studiorendement.com" target="_blank">studiorendement.com</a></p>
+  <p style="margin-top:6px;font-size:0.75rem;opacity:0.6;">Berekeningen zijn indicatief. Geen fiscaal advies.</p>
+</footer>
+
+<script>
+(function () {
+
+  /* ─── CONSTANTEN 2026 (bron: belastingdienst.nl) ─── */
+  const C = {
+    ZA:             1200,
+    SA:             2123,
+    MKB:            0.127,
+    // Box 1 schijven – bron: Belastingdienst 2026
+    S1_GRENS:       38883,   // t/m €38.883 → 35,75%
+    S2_GRENS:       78426,   // t/m €78.426 → 37,56%
+    S1_RATE:        0.3575,
+    S2_RATE:        0.3756,
+    S3_RATE:        0.4950,
+    // ZVW bijdrage – bron: Belastingdienst 2026 (lage bijdrage zelfstandigen)
+    ZVW_RATE:       0.0485,  // 4,85%
+    ZVW_MAX:        79409,   // max bijdrage-inkomen 2026
+    // AHK – bron: tabel algemene heffingskorting 2026 (Belastingdienst)
+    AHK_MAX:        3115,    // max €3.115 t/m €29.736
+    AHK_GRENS:      29736,
+    AHK_AFBOUW:     0.06398, // 6,398%
+    // Eigenwoningforfait 2026 – bron: belastingdienst.nl (5 schijven)
+    // Tarieven gelden over de GEHELE WOZ-waarde van de betreffende schijf
+  };
+
+  /* ─── HULPFUNCTIES ─── */
+  function euro(n) {
+    return '€ ' + Math.round(n).toLocaleString('nl-NL');
+  }
+  function pct(n, tot) {
+    return ((n / tot) * 100).toFixed(1) + '%';
+  }
+
+  function belasting(inkomen) {
+    if (inkomen <= 0) return 0;
+    let ib = 0;
+    ib += Math.min(inkomen, C.S1_GRENS) * C.S1_RATE;
+    if (inkomen > C.S1_GRENS)
+      ib += (Math.min(inkomen, C.S2_GRENS) - C.S1_GRENS) * C.S2_RATE;
+    if (inkomen > C.S2_GRENS)
+      ib += (inkomen - C.S2_GRENS) * C.S3_RATE;
+    return ib;
+  }
+
+  function ahk(inkomen) {
+    if (inkomen <= C.AHK_GRENS) return C.AHK_MAX;
+    const afbouw = C.AHK_AFBOUW * (inkomen - C.AHK_GRENS);
+    return Math.max(0, C.AHK_MAX - afbouw);
+  }
+
+  // Arbeidskorting 2026 – bron: tabel arbeidskorting 2026 (Belastingdienst)
+  function arbeidskorting(ai) {
+    if (ai <= 0) return 0;
+    if (ai <= 11965)  return 0.08324 * ai;
+    if (ai <= 25845)  return 996  + 0.31009 * (ai - 11965);
+    if (ai <= 45592)  return 5300 + 0.01950 * (ai - 25845);
+    if (ai <= 132920) return 5685 - 0.06510 * (ai - 45592);
+    return 0;
+  }
+
+  // Eigenwoningforfait 2026 – bron: belastingdienst.nl
+  // Het tarief geldt over de GEHELE WOZ-waarde (geen gelaagde berekening zoals box 1)
+  function eigenwoningforfait(woz) {
+    if (woz <=    12500) return 0;
+    if (woz <=    25000) return woz * 0.0010; // 0,10%
+    if (woz <=    50000) return woz * 0.0020; // 0,20%
+    if (woz <=    75000) return woz * 0.0025; // 0,25%
+    if (woz <= 1350000)  return woz * 0.0035; // 0,35%
+    return 4725 + (woz - 1350000) * 0.0235;   // €4.725 + 2,35% over meerdere
+  }
+
+  /* ─── KERNBEREKENING ─── */
+  function bereken(p) {
+    const za  = p.za  ? C.ZA : 0;
+    const sa  = p.sa  ? C.SA : 0;
+    const mkb = Math.max(0, p.winst - za - sa) * C.MKB;
+    const ewf = eigenwoningforfait(p.woz);
+    // netto eigen woning: positief = aftrek, negatief = bijtelling
+    const netto_ew = p.hypotheekrente - ewf;
+
+    const belastbaar = Math.max(0,
+      p.winst - za - sa - mkb - p.aov - p.lijfrente - netto_ew
+    );
+
+    const ib_basis   = belasting(belastbaar);
+
+    // Tariefsaanpassing: ondernemersaftrek (ZA+SA+MKB) is beperkt aftrekbaar.
+    // Basis = winst MINUS AOV en lijfrente (die buiten de tariefsaanpassing vallen),
+    // VOOR aftrek van ZA/SA/MKB. Zo bepalen we hoeveel ondernemersaftrek in schijf 3 valt.
+    const aftrekken    = za + sa + mkb;
+    const basis_ta     = p.winst - p.aov - p.lijfrente;
+    const schijf3_deel = Math.max(0, basis_ta - C.S2_GRENS);
+    const aftrek_s3    = Math.min(aftrekken, schijf3_deel);
+    const ta           = aftrek_s3 * (C.S3_RATE - C.S2_RATE);
+
+    const ahk_val    = ahk(belastbaar);
+    const ak_val     = arbeidskorting(p.winst);
+
+    const ib_totaal  = Math.max(0, ib_basis + ta - ahk_val - ak_val);
+
+    // ZVW grondslag = winst - ZA - SA - MKB (ZONDER AOV/lijfrente aftrek)
+    // Bron: Belastingdienst – bijdrage Zvw zelfstandigen 2026: 4,85%, max €79.409
+    const zvw_grondslag = Math.min(Math.max(0, p.winst - za - sa - mkb), C.ZVW_MAX);
+    const zvw        = zvw_grondslag * C.ZVW_RATE;
+
+    // Netto = winst minus alle werkelijke uitgaven (IB + ZVW + AOV + lijfrente)
+    const netto      = p.winst - ib_totaal - zvw - p.aov - p.lijfrente;
+
+    return {
+      winst: p.winst, za, sa, mkb, ewf, ewf_woz: p.woz, netto_ew,
+      aov: p.aov, lijfrente: p.lijfrente,
+      zvw_grondslag, belastbaar, ib_basis, ta, ahk_val, ak_val,
+      ib_totaal, zvw, netto,
+    };
+  }
+
+  /* ─── GRAFIEK ─── */
+  let grafiek = null;
+  function toonGrafiek(r) {
+    const ctx = document.getElementById('donut-grafiek').getContext('2d');
+    if (grafiek) grafiek.destroy();
+    const labels = ['Netto inkomen', 'Inkomstenbelasting', 'ZVW bijdrage'];
+    const data   = [Math.max(0, r.netto), r.ib_totaal, r.zvw];
+    const colors = ['#C5A643', '#C0392B', '#2980B9'];
+    if (r.aov > 0)      { labels.push('AOV premie');        data.push(r.aov);      colors.push('#7F8C8D'); }
+    if (r.lijfrente > 0){ labels.push('Lijfrente / pensioen'); data.push(r.lijfrente); colors.push('#95A5A6'); }
+    grafiek = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: colors,
+          borderWidth: 3,
+          borderColor: '#fff',
+          hoverOffset: 8,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '62%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { font: { family: 'Lato, sans-serif', size: 13 }, padding: 20, usePointStyle: true }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => ' ' + ctx.label + ': ' + euro(ctx.parsed)
+            }
+          }
+        }
+      }
+    });
+  }
+
+  /* ─── UI HELPERS ─── */
+  function set(id, val) { document.getElementById(id).textContent = val; }
+
+  function toonResultaten(r) {
+    const w = r.winst;
+    set('res-netto-jaar',    euro(r.netto));
+    set('res-netto-maand',   euro(r.netto / 12) + ' per maand');
+    set('res-ib',            euro(r.ib_totaal));
+    set('res-ib-pct',        pct(r.ib_totaal, w) + ' van winst');
+    set('res-zvw',           euro(r.zvw));
+    set('res-zvw-pct',       pct(r.zvw, w) + ' van winst');
+    set('res-netto-pct-groot', pct(Math.max(0, r.netto), w));
+
+    set('bd-winst',    euro(w));
+    set('bd-za',       r.za > 0 ? euro(r.za) : '–');
+    set('bd-sa',       r.sa > 0 ? euro(r.sa) : '–');
+    set('bd-mkb',      euro(r.mkb));
+    document.getElementById('bd-sa-rij').style.display = r.sa > 0 ? '' : 'none';
+    set('bd-aov',      r.aov > 0 ? euro(r.aov) : '–');
+    document.getElementById('bd-aov-rij').style.display = r.aov > 0 ? '' : 'none';
+    set('bd-lijfrente', r.lijfrente > 0 ? euro(r.lijfrente) : '–');
+    document.getElementById('bd-lijfrente-rij').style.display = r.lijfrente > 0 ? '' : 'none';
+
+    const ewf_pos = r.netto_ew < 0; // netto_ew negatief = ewf > rente = bijtelling
+    const ewf_show = r.ewf > 0;
+    document.getElementById('bd-ewf-rij').style.display = ewf_show ? '' : 'none';
+    if (ewf_show) {
+      // Bepaal het toegepaste EWF-percentage voor de label
+      const woz = r.ewf_woz || 0;
+      const ewfPct = woz <= 25000 ? '0,10%' : woz <= 50000 ? '0,20%' : woz <= 75000 ? '0,25%' : woz <= 1350000 ? '0,35%' : '2,35%';
+      document.getElementById('bd-ewf-label').textContent = `+ Eigenwoningforfait (${ewfPct})`;
+      set('bd-ewf', euro(r.ewf));
+    }
+    // Eigen woning: toon EWF, hypotheekrente en netto effect apart
+    const hypo       = r.hypotheekrente_val || 0;
+    const netto_ew   = hypo - r.ewf; // positief = netto aftrek, negatief = netto bijtelling
+
+    // Hypotheekrente-rij: altijd tonen als er iets ingevuld is
+    document.getElementById('bd-hypo-rij').style.display = hypo > 0 ? '' : 'none';
+    if (hypo > 0) set('bd-hypo', euro(hypo));
+
+    // Netto-rij: tonen als zowel EWF als hypotheekrente aanwezig zijn
+    const netto_rij_show = r.ewf > 0 && hypo > 0;
+    document.getElementById('bd-hrente-rij').style.display = netto_rij_show ? '' : 'none';
+    if (netto_rij_show) {
+      const label = document.getElementById('bd-hrente-label');
+      if (netto_ew > 0) {
+        label.textContent = '= Netto aftrek eigen woning';
+        document.getElementById('bd-hrente-rij').className = 'aftrek';
+        set('bd-hrente', euro(netto_ew));
+      } else {
+        label.textContent = '= Netto bijtelling eigen woning';
+        document.getElementById('bd-hrente-rij').className = '';
+        set('bd-hrente', euro(-netto_ew));
+      }
+    }
+
+    set('bd-belastbaar', euro(r.belastbaar));
+    set('bd-belasting',  euro(r.ib_basis));
+    set('bd-ta',         r.ta > 0 ? euro(r.ta) : '–');
+    document.getElementById('bd-ta-rij').style.display = r.ta > 0 ? '' : 'none';
+    set('bd-ahk',        euro(r.ahk_val));
+    set('bd-ak',         euro(r.ak_val));
+    set('bd-ib-totaal',  euro(r.ib_totaal));
+    // ZVW: grondslag = winst - ZA - SA - MKB, rate 4,85%, max €79.409
+    document.getElementById('bd-zvw-label').textContent =
+      `Bijdrage ZVW (4,85% over maximaal ${euro(C.ZVW_MAX)})`;
+    set('bd-zvw',        euro(r.zvw));
+    // Netto = winst - IB - ZVW - AOV - lijfrente
+    set('bd-netto',      euro(r.netto));
+
+    toonGrafiek(r);
+
+    const sectie = document.getElementById('sectie-resultaten');
+    sectie.style.display = 'block';
+    setTimeout(() => sectie.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }
+
+  /* ─── EIGEN WONING PREVIEW ─── */
+  function updateEWPreview() {
+    const woz = parseFloat(document.getElementById('woz').value) || 0;
+    const hr  = parseFloat(document.getElementById('hypotheekrente').value) || 0;
+    const ewf = eigenwoningforfait(woz);
+    const preview = document.getElementById('ew-preview');
+    const tekst   = document.getElementById('ew-tekst');
+
+    if (woz === 0 && hr === 0) { preview.style.display = 'none'; return; }
+    preview.style.display = 'block';
+
+    if (ewf === 0 && hr === 0) { tekst.textContent = 'Geen effect (WOZ onder drempel).'; return; }
+
+    const netto = hr - ewf;
+    if (netto > 0) {
+      tekst.textContent = `Eigenwoningforfait ${euro(ewf)} · Hypotheekrenteaftrek ${euro(hr)} · Netto aftrek ${euro(netto)} ↓ belastbaar inkomen`;
+    } else if (netto < 0) {
+      tekst.textContent = `Eigenwoningforfait ${euro(ewf)} · Hypotheekrenteaftrek ${euro(hr)} · Per saldo bijtelling ${euro(-netto)} ↑ belastbaar inkomen`;
+    } else {
+      tekst.textContent = `Eigenwoningforfait en hypotheekrente heffen elkaar op.`;
+    }
+  }
+
+  /* ─── ZELFSTANDIGENAFTREK → STARTERSAFTREK KOPPELING ─── */
+  function updateSaStatus() {
+    const zaJa    = document.getElementById('za-ja').checked;
+    const toggle  = document.getElementById('sa-toggle');
+    const tekst   = document.getElementById('sa-uitgeschakeld-tekst');
+    const saJa    = document.getElementById('sa-ja');
+    const saNee   = document.getElementById('sa-nee');
+
+    if (zaJa) {
+      toggle.classList.remove('uitgeschakeld');
+      tekst.style.display = 'none';
+    } else {
+      // Geen ZA → SA automatisch op Nee en uitgeschakeld
+      saJa.checked  = false;
+      saNee.checked = true;
+      toggle.classList.add('uitgeschakeld');
+      tekst.style.display = 'block';
+    }
+  }
+
+  document.querySelectorAll('input[name="za"]').forEach(r =>
+    r.addEventListener('change', updateSaStatus)
+  );
+  updateSaStatus(); // initieel uitvoeren
+
+  /* ─── SLIDER SYNC ─── */
+  const slider  = document.getElementById('winst-slider');
+  const invoer  = document.getElementById('winst-invoer');
+  slider.addEventListener('input', () => { invoer.value = slider.value; });
+  invoer.addEventListener('input', () => {
+    const v = Math.max(20000, Math.min(300000, parseInt(invoer.value) || 20000));
+    slider.value = v;
+  });
+
+  /* ─── EIGEN WONING EVENTS ─── */
+  document.getElementById('woz').addEventListener('input', updateEWPreview);
+  document.getElementById('hypotheekrente').addEventListener('input', updateEWPreview);
+
+  /* ─── FORMULIER SUBMIT ─── */
+  document.getElementById('rekentool-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const winst      = parseFloat(invoer.value) || 0;
+    const za         = document.querySelector('input[name="za"]:checked').value === 'ja';
+    const sa         = document.querySelector('input[name="sa"]:checked').value === 'ja';
+    const aov        = parseFloat(document.getElementById('aov').value) || 0;
+    const lijfrente  = parseFloat(document.getElementById('lijfrente').value) || 0;
+    const woz        = parseFloat(document.getElementById('woz').value) || 0;
+    const hypo       = parseFloat(document.getElementById('hypotheekrente').value) || 0;
+
+    const r = bereken({ winst, za, sa, aov, lijfrente, woz, hypotheekrente: hypo });
+    r.hypotheekrente_val = hypo;
+    toonResultaten(r);
+  });
+
+  /* ─── PDF EXPORT ─── */
+  document.getElementById('btn-pdf').addEventListener('click', function () {
+    window.print();
+  });
+
+})();
+</script>
+</body>
+</html>

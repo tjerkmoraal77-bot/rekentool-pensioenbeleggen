@@ -301,6 +301,16 @@
 
       /* Netto hero */
       .netto-hero { padding: 24px 12px; }
+
+      /* CTA knop: wrap tekst op smal scherm */
+      .btn-cta { white-space: normal; text-align: center; }
+
+      /* Kaarttitel: voorkom afkappen */
+      .kaart-titel h2 { font-size: 1rem; min-width: 0; word-break: break-word; }
+      .kaart-titel { flex-wrap: nowrap; align-items: flex-start; }
+
+      /* Slider euro-teken verbergen op mobiel (zit al in veld) */
+      .slider-rij > span { display: none; }
     }
 
     @media print {

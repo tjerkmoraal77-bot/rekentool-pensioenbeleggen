@@ -697,14 +697,24 @@
 
     const ib_basis   = belasting(belastbaar);
 
-    // Tariefsaanpassing: ondernemersaftrek (ZA+SA+MKB) is beperkt aftrekbaar.
-    // Basis = winst MINUS AOV en lijfrente (die buiten de tariefsaanpassing vallen),
-    // VOOR aftrek van ZA/SA/MKB. Zo bepalen we hoeveel ondernemersaftrek in schijf 3 valt.
-    const aftrekken    = za + sa + mkb;
-    const basis_ta     = p.winst - p.aov - p.lijfrente;
-    const schijf3_deel = Math.max(0, basis_ta - C.S2_GRENS);
-    const aftrek_s3    = Math.min(aftrekken, schijf3_deel);
-    const ta           = aftrek_s3 * (C.S3_RATE - C.S2_RATE);
+    // Tariefsaanpassing: beperkte aftrekposten zijn max aftrekbaar tegen schijf 2 (37,56%).
+    // Beperkte aftrekposten: ondernemersaftrek (ZA+SA+MKB) + netto hypotheekrenteaftrek.
+    // AOV en lijfrente zijn NIET beperkt en tellen niet mee.
+
+    // 1. Ondernemersaftrek – basis = winst vóór ZA/SA/MKB, ná AOV/lijfrente
+    const aftrekken_ond = za + sa + mkb;
+    const basis_ond     = p.winst - p.aov - p.lijfrente;
+    const s3_ond        = Math.max(0, basis_ond - C.S2_GRENS);
+    const ta_ond        = Math.min(aftrekken_ond, s3_ond) * (C.S3_RATE - C.S2_RATE);
+
+    // 2. Netto hypotheekrenteaftrek – basis = belastbaar + netto_hypo_aftrek
+    //    (= winst - za - sa - mkb - aov - lijfrente, vóór eigenwoningaftrek)
+    const netto_hypo    = Math.max(0, p.hypotheekrente - ewf);
+    const basis_hypo    = belastbaar + netto_hypo;
+    const s3_hypo       = Math.max(0, basis_hypo - C.S2_GRENS);
+    const ta_hypo       = Math.min(netto_hypo, s3_hypo) * (C.S3_RATE - C.S2_RATE);
+
+    const ta            = ta_ond + ta_hypo;
 
     const ahk_val    = ahk(belastbaar);
     const ak_val     = arbeidskorting(p.winst);

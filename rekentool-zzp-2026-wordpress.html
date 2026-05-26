@@ -546,10 +546,15 @@
     const netto_ew = p.hypotheekrente - ewf;
     const belastbaar = Math.max(0, p.winst - za - sa - mkb - p.aov - p.lijfrente - netto_ew);
     const ib_basis = belasting(belastbaar);
-    const aftrekken = za + sa + mkb;
-    const basis_ta = p.winst - p.aov - p.lijfrente;
-    const aftrek_s3 = Math.min(aftrekken, Math.max(0, basis_ta - C.S2_GRENS));
-    const ta = aftrek_s3 * (C.S3_RATE - C.S2_RATE);
+    // Ondernemersaftrek
+    const aftrekken_ond = za + sa + mkb;
+    const basis_ond     = p.winst - p.aov - p.lijfrente;
+    const ta_ond        = Math.min(aftrekken_ond, Math.max(0, basis_ond - C.S2_GRENS)) * (C.S3_RATE - C.S2_RATE);
+    // Netto hypotheekrenteaftrek
+    const netto_hypo    = Math.max(0, p.hypotheekrente - ewf);
+    const basis_hypo    = belastbaar + netto_hypo;
+    const ta_hypo       = Math.min(netto_hypo, Math.max(0, basis_hypo - C.S2_GRENS)) * (C.S3_RATE - C.S2_RATE);
+    const ta            = ta_ond + ta_hypo;
     const ahk_val = ahk(belastbaar);
     const ak_val  = arbeidskorting(p.winst);
     const ib_totaal = Math.max(0, ib_basis + ta - ahk_val - ak_val);
